@@ -1,0 +1,12 @@
+node_modules
+
+# Archivos de Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Archivos de build
+bin/
+obj/
