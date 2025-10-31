@@ -1,0 +1,218 @@
+﻿{
+   "CodeGenerationMode": 4,
+   "ContextClassName": "CINE_2025_1W1_GRUPO_5Context",
+   "ContextNamespace": null,
+   "FilterSchemas": false,
+   "IncludeConnectionString": false,
+   "MinimumProductVersion": "2.6.1166",
+   "ModelNamespace": null,
+   "OutputContextPath": null,
+   "OutputPath": "Models",
+   "PreserveCasingWithRegex": true,
+   "ProjectRootNamespace": "WebApplication1",
+   "Schemas": null,
+   "SelectedHandlebarsLanguage": 2,
+   "SelectedToBeGenerated": 0,
+   "T4TemplatePath": null,
+   "Tables": [
+      {
+         "Name": "[dbo].[actores]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[barrios]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[butacas]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[butacas_funcion]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[cargos]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[cines]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[clasificaciones_peliculas]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[clientes]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[compras]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[descuentos]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[detalle_reservas]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[detalles_compra]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[direcciones]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[directores]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[distribuidoras]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[empleados]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[estado_butacas]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[estado_reservas]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[fechas_especiales]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[fechas_horas_especiales]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[formas_pago]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[funciones]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[generos]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[idiomas]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[localidades]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[paises]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[peliculas]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[peliculas_actores]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[peliculas_directores]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[peliculas_generos]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[peliculas_idiomas]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[productos]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[provincias]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[puntos_venta]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[reservas]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[salas]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[tipos_butacas]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[tipos_descuentos]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[tipos_productos]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[tipos_publico]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[tipos_salas]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[tipos_usuarios]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[usuarios]",
+         "ObjectType": 0
+      }
+   ],
+   "UiHint": null,
+   "UncountableWords": null,
+   "UseAsyncStoredProcedureCalls": true,
+   "UseBoolPropertiesWithoutDefaultSql": false,
+   "UseDatabaseNames": false,
+   "UseDatabaseNamesForRoutines": true,
+   "UseDateOnlyTimeOnly": true,
+   "UseDbContextSplitting": false,
+   "UseDecimalDataAnnotationForSprocResult": true,
+   "UseFluentApiOnly": true,
+   "UseHandleBars": false,
+   "UseHierarchyId": false,
+   "UseInflector": true,
+   "UseInternalAccessModifiersForSprocsAndFunctions": false,
+   "UseLegacyPluralizer": false,
+   "UseManyToManyEntity": false,
+   "UseNoDefaultConstructor": false,
+   "UseNoNavigations": false,
+   "UseNoObjectFilter": false,
+   "UseNodaTime": false,
+   "UseNullableReferences": false,
+   "UsePrefixNavigationNaming": false,
+   "UseSchemaFolders": false,
+   "UseSchemaNamespaces": false,
+   "UseSpatial": false,
+   "UseT4": false,
+   "UseT4Split": false
+}
