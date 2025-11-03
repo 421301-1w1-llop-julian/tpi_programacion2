@@ -5,11 +5,11 @@ using WebApplication1.Models;
 
 namespace Cine2025.Repositories
 {
-    public class UsuariosRepository : IUsuariosRepository
+    public class UsuarioRepository : IUsuarioRepository
     {
         private readonly CINE_2025_1W1_GRUPO_5Context _context;
 
-        public UsuariosRepository(CINE_2025_1W1_GRUPO_5Context context)
+        public UsuarioRepository(CINE_2025_1W1_GRUPO_5Context context)
         {
             _context = context;
         }

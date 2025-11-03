@@ -2,7 +2,7 @@
 
 namespace Cine2025.Repositories.Interfaces
 {
-    public interface IUsuariosRepository
+    public interface IUsuarioRepository
     {
         Task<Usuario?> GetByUsernameAsync(string username);
         Task<Usuario?> GetByIdAsync(int id);
