@@ -9,5 +9,7 @@
         public string Apellido { get; set; }
         public string Email { get; set; }
         public int IdTipoUsuario { get; set; }
+
+        public bool? Activo { get; set; }
     }
 }

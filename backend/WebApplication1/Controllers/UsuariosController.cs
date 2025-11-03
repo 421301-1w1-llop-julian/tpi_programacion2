@@ -6,7 +6,7 @@ using WebApplication1.DTOs.Usuario;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize] // exige JWT en todas las rutas por defecto
+[Authorize(Policy = "AdminOnly")] // exige JWT en todas las rutas por defecto
 public class UsuariosController : ControllerBase
 {
     private readonly IUsuarioService _userService;
