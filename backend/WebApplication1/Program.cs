@@ -34,7 +34,7 @@ builder.Services.AddScoped<IReservasRepository, ReservasRepository>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<ITiposUsuarioService, TiposUsuarioService>();
 // --- AÑADIDOS PARA RESERVAS ---
-builder.Services.AddScoped<IReservaService, ReservaService>();
+builder.Services.AddScoped<IReservaService, CompraService>();
 
 // --- JWT Authentication ---
 builder
