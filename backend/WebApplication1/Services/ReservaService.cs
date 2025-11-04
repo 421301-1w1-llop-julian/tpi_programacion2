@@ -24,10 +24,10 @@ namespace Cine2025.Services
 
             bool disponibles = await _reservasRepo.ButacasDisponiblesAsync(dto.IdFuncion, dto.Butacas);
             if (!disponibles)
-                throw new Exception("Una o más butacas ya están reservadas o no están disponibles.");
+                throw new Exception("Una o más butacas ya están reservadas.");
 
-            // Pasa el ID del Usuario al repositorio
-            await _reservasRepo.CrearReservaAsync(idUsuario, dto.IdFuncion, dto.Butacas);
+            // Llama al repositorio con el ID del usuario
+            await _reservasRepo.CrearReservaAsync(idUsuario, dto.IdFuncion, dto.Butacas); // ¡Cambio!
 
             return "Reserva creada con éxito.";
         }

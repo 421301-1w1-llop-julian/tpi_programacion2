@@ -1,6 +1,7 @@
 using System.Text;
 using Cine2025.Repositories;
 using Cine2025.Repositories.Interfaces;
+using Cine2025.Services; 
 using Cine2025.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -26,10 +27,14 @@ builder.Services.AddDbContext<CINE_2025_1W1_GRUPO_5Context>(options =>
 // --- Repositories ---
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<ITiposUsuarioRepository, TiposUsuarioRepository>();
+// --- AÑADIDOS PARA RESERVAS ---
+builder.Services.AddScoped<IReservasRepository, ReservasRepository>();
 
 // --- Services ---
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<ITiposUsuarioService, TiposUsuarioService>();
+// --- AÑADIDOS PARA RESERVAS ---
+builder.Services.AddScoped<IReservaService, ReservaService>();
 
 // --- JWT Authentication ---
 builder
@@ -77,7 +82,7 @@ app.UseHttpsRedirection();
 
 app.UseRouting();
 
-app.UseAuthentication(); // Debe ir antes de UseAuthorization
+app.UseAuthentication(); 
 
 app.UseAuthorization();
 

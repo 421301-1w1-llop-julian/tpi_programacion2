@@ -1,6 +1,5 @@
-﻿
-using Cine2025.DTOs;
-using Cine2025.Services;
+﻿using Cine2025.DTOs;
+using Cine2025.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
@@ -11,12 +10,12 @@ namespace Cine2025.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    [Authorize] 
     public class ReservasController : ControllerBase
     {
-        private readonly ReservaService _service;
+        private readonly IReservaService _service;
 
-        public ReservasController(ReservaService service)
+        public ReservasController(IReservaService service)
         {
             _service = service;
         }
@@ -38,12 +37,11 @@ namespace Cine2025.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                // Este error se lanza si el IdUsuario no tiene un IdCliente asociado
                 return StatusCode(403, new { error = ex.Message });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = ex.Message });
+                return BadRequest(new { error = "Error al crear la reserva. Por favor, verifique los datos. Detalle: " + ex.Message });
             }
         }
     }
