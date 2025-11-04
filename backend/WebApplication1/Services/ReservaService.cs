@@ -13,7 +13,8 @@ namespace Cine2025.Services
             _reservasRepo = reservasRepo;
         }
 
-        public async Task<string> CrearReservaAsync(CrearReservaDto dto)
+        // Método actualizado: recibe idUsuario
+        public async Task<string> CrearReservaAsync(int idUsuario, CrearReservaDto dto)
         {
             if (dto.Butacas.Count == 0)
                 throw new Exception("Debe seleccionar al menos una butaca.");
@@ -23,9 +24,10 @@ namespace Cine2025.Services
 
             bool disponibles = await _reservasRepo.ButacasDisponiblesAsync(dto.IdFuncion, dto.Butacas);
             if (!disponibles)
-                throw new Exception("Una o más butacas ya están reservadas.");
+                throw new Exception("Una o más butacas ya están reservadas o no están disponibles.");
 
-            await _reservasRepo.CrearReservaAsync(dto.IdCliente, dto.IdFuncion, dto.Butacas);
+            // Pasa el ID del Usuario al repositorio
+            await _reservasRepo.CrearReservaAsync(idUsuario, dto.IdFuncion, dto.Butacas);
 
             return "Reserva creada con éxito.";
         }

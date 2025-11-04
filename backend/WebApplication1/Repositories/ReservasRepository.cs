@@ -14,14 +14,25 @@ namespace Cine2025.Repositories
             _context = context;
         }
 
-        public async Task<Reserva> CrearReservaAsync(int idCliente, int idFuncion, List<int> idsButacas)
+        public async Task<Reserva> CrearReservaAsync(int idUsuario, int idFuncion, List<int> idsButacas)
         {
+            var idCliente = await _context.Usuarios
+                .Where(u => u.IdUsuario == idUsuario)
+                .Select(u => u.IdCliente)
+                .FirstOrDefaultAsync();
+
+            if (idCliente == null || idCliente.Value == 0)
+            {
+                throw new InvalidOperationException("El usuario logueado no está asociado a una entidad cliente y no puede realizar reservas.");
+            }
+
+            int idClienteReal = idCliente.Value;
             var reserva = new Reserva
             {
-                IdCliente = idCliente,
+                IdCliente = idClienteReal, 
                 FechaHoraReserva = DateTime.Now,
                 FechaHoraVencimiento = DateTime.Now.AddHours(2),
-                IdEstadoReserva = 1 // "Pendiente"
+                IdEstadoReserva = 1 
             };
 
             _context.Reservas.Add(reserva);
@@ -38,9 +49,11 @@ namespace Cine2025.Repositories
 
                 var butacaFuncion = await _context.ButacasFuncions
                     .FirstOrDefaultAsync(b => b.IdFuncion == idFuncion && b.IdButaca == idButaca);
+
                 if (butacaFuncion != null)
                 {
-                    butacaFuncion.IdEstadoButaca = 2; // Reservada
+                    butacaFuncion.IdEstadoButaca = 2; 
+                    butacaFuncion.IdReserva = reserva.IdReserva;
                 }
             }
 
@@ -50,10 +63,11 @@ namespace Cine2025.Repositories
 
         public async Task<bool> ButacasDisponiblesAsync(int idFuncion, List<int> idsButacas)
         {
+            
             return !await _context.ButacasFuncions
                 .AnyAsync(b => b.IdFuncion == idFuncion &&
                                idsButacas.Contains(b.IdButaca) &&
-                               b.IdEstadoButaca != 1); // 1 = Libre
+                               b.IdEstadoButaca != 1);
         }
     }
 }
