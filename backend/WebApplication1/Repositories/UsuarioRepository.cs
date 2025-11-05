@@ -36,42 +36,57 @@ namespace Cine2025.Repositories
             if (string.IsNullOrWhiteSpace(dto.Email))
                 throw new ArgumentException("El email es obligatorio.");
 
-            if (!new EmailAddressAttribute().IsValid(dto.Email))
-                throw new ArgumentException("El formato del email es inválido.");
-
-            if (string.IsNullOrWhiteSpace(dto.Password) || dto.Password.Length < 8)
-                throw new ArgumentException("La contraseña debe tener al menos 8 caracteres.");
-
-            string username = dto.Username.Trim().ToLower();
-            string email = dto.Email.Trim().ToLower();
-
-            if (await _db.Usuarios.AnyAsync(u => u.Username.ToLower() == username))
-                throw new InvalidOperationException("El username ya está en uso.");
-
-            if (await _db.Usuarios.AnyAsync(u => u.Email.ToLower() == email))
-                throw new InvalidOperationException("El email ya está en uso.");
-
-            if (!await _db.TiposUsuarios.AnyAsync(t => t.IdTipoUsuario == dto.IdTipoUsuario))
-                throw new InvalidOperationException("El tipo de usuario especificado no existe.");
-
-            var hashed = BCrypt.Net.BCrypt.HashPassword(dto.Password);
-
-            var entity = new Usuario
+            // 1. VALIDACIÓN DE UNICIDAD (Opcional, pero vital)
+            if (await _db.Usuarios.AnyAsync(u => u.Username == dto.Username || u.Email == dto.Email))
             {
-                Username = dto.Username.Trim(),
-                Password = hashed,
-                Nombre = dto.Nombre?.Trim(),
-                Apellido = dto.Apellido?.Trim(),
-                Email = dto.Email.Trim(),
-                IdTipoUsuario = dto.IdTipoUsuario,
-                FechaCreacion = DateTime.UtcNow,
-                Activo = true,
-            };
+                throw new ArgumentException("Ya existe un usuario con el mismo Username o Email.");
+            }
 
-            _db.Usuarios.Add(entity);
-            await _db.SaveChangesAsync();
+            // 2. INICIO DE TRANSACCIÓN: Asegura que si uno falla, el otro se revierte.
+            await using var transaction = await _db.Database.BeginTransactionAsync();
+            try
+            {
+                // 3. CREAR LA ENTIDAD CLIENTE
+                var cliente = new Cliente
+                {
+                    Nombre = dto.Nombre,
+                    Apellido = dto.Apellido,
+                    Email = dto.Email,
+                    // Si tienes el campo FechaNacimiento en Cliente, asegúrate de manejarlo aquí.
+                    
+                };
+                _db.Clientes.Add(cliente);
+                // Guardamos para que la base de datos asigne el IdCliente
+                await _db.SaveChangesAsync();
 
-            return MapToDto(entity);
+                // 4. CREAR LA ENTIDAD USUARIO
+                var hashedPassword = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+                var user = new Usuario
+                {
+                    Username = dto.Username,
+                    Password = hashedPassword,
+                    Nombre = dto.Nombre,
+                    Apellido = dto.Apellido,
+                    Email = dto.Email,
+                    IdTipoUsuario = dto.IdTipoUsuario,
+                    Activo = true,
+                    // ASOCIACIÓN CLAVE: Usamos el IdCliente que acabamos de generar
+                    IdCliente = cliente.IdCliente
+                };
+                _db.Usuarios.Add(user);
+                await _db.SaveChangesAsync();
+
+                // 5. CONFIRMAR LA TRANSACCIÓN
+                await transaction.CommitAsync();
+
+                return MapToDto(user);
+            }
+            catch (Exception)
+            {
+                // Si algo falla (ej. error de base de datos), se revierte todo
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         // ---------------- READ by ID ----------------

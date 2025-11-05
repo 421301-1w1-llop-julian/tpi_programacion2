@@ -1,6 +1,7 @@
 using System.Text;
 using Cine2025.Repositories;
 using Cine2025.Repositories.Interfaces;
+using Cine2025.Services; 
 using Cine2025.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -26,6 +27,8 @@ builder.Services.AddDbContext<CINE_2025_1W1_GRUPO_5Context>(options =>
 // --- Repositories ---
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<ITiposUsuarioRepository, TiposUsuarioRepository>();
+// --- A�ADIDOS PARA RESERVAS ---
+builder.Services.AddScoped<ICompraRepository, CompraRepository>();
 builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
 builder.Services.AddScoped<IGeneroRepository, GeneroRepository>();
 builder.Services.AddScoped<IIdiomaRepository, IdiomaRepository>();
@@ -38,6 +41,8 @@ builder.Services.AddScoped<ITiposProductoRepository, TiposProductoRepository>();
 // --- Services ---
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<ITiposUsuarioService, TiposUsuarioService>();
+// --- A�ADIDOS PARA RESERVAS ---
+builder.Services.AddScoped<ICompraService, CompraService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IGeneroService, GeneroService>();
 builder.Services.AddScoped<IIdiomaService, IdiomaService>();
@@ -69,6 +74,20 @@ builder
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret)),
             ClockSkew = TimeSpan.Zero,
         };
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                // Si la autenticaci�n falla (token caducado, firma inv�lida, etc.)
+                // Establece el estado de respuesta a 401 Unauthorized y detiene el procesamiento
+                context.Response.StatusCode = 401;
+                context.Response.ContentType = "application/json";
+                // Puedes personalizar el cuerpo aqu� para mayor claridad, pero 401 es suficiente.
+                context.Response.WriteAsync("{\"error\":\"Token de autenticaci�n inv�lido o caducado.\"}");
+                context.Fail("Token de autenticaci�n inv�lido o caducado.");
+                return Task.CompletedTask;
+            }
+        };
     });
 
 // --- Controllers & Swagger ---
@@ -91,12 +110,16 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// 1. Usa Routing (Identifica a d�nde va la petici�n: /api/Compras)
 app.UseRouting();
 
-app.UseAuthentication(); // Debe ir antes de UseAuthorization
+// 2. Usa Authentication (Lee el token 'Bearer' y extrae el ID)
+app.UseAuthentication();
 
-app.UseAuthorization();
+// 3. Usa Authorization (Aplica la restricci�n [Authorize] a la ruta)
+app.UseAuthorization(); // <--- �Esta l�nea es la m�s cr�tica!
 
+// 4. Mapea Controllers (Ejecuta el c�digo del ComprasController)
 app.MapControllers();
 
 app.Run();

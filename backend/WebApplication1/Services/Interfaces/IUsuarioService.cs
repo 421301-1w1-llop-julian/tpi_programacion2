@@ -3,8 +3,9 @@ using WebApplication1.DTOs.Usuario;
 
 namespace Cine2025.Services.Interfaces
 {
-    public interface IUsuarioService
+    public interface IUsuarioService 
     {
+
         Task<UserDTO> CreateAsync(UserCreateDTO dto);
         Task<UserDTO> GetByIdAsync(int id);
         Task<IEnumerable<UserDTO>> GetAllAsync();
