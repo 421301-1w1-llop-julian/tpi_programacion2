@@ -28,13 +28,13 @@ builder.Services.AddDbContext<CINE_2025_1W1_GRUPO_5Context>(options =>
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<ITiposUsuarioRepository, TiposUsuarioRepository>();
 // --- AÑADIDOS PARA RESERVAS ---
-builder.Services.AddScoped<IReservasRepository, ReservasRepository>();
+builder.Services.AddScoped<ICompraRepository, CompraRepository>();
 
 // --- Services ---
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<ITiposUsuarioService, TiposUsuarioService>();
 // --- AÑADIDOS PARA RESERVAS ---
-builder.Services.AddScoped<IReservaService, CompraService>();
+builder.Services.AddScoped<ICompraService, CompraService>();
 
 // --- JWT Authentication ---
 builder
