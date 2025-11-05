@@ -32,6 +32,8 @@ builder.Services.AddScoped<IIdiomaRepository, IdiomaRepository>();
 builder.Services.AddScoped<IActorRepository, ActorRepository>();
 builder.Services.AddScoped<IDirectorRepository, DirectorRepository>();
 builder.Services.AddScoped<IPaisRepository, PaisRepository>();
+builder.Services.AddScoped<IProductosRepository, ProductoRepository>();
+builder.Services.AddScoped<ITiposProductoRepository, TiposProductoRepository>();
 
 // --- Services ---
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
@@ -42,6 +44,8 @@ builder.Services.AddScoped<IIdiomaService, IdiomaService>();
 builder.Services.AddScoped<IActorService, ActorService>();
 builder.Services.AddScoped<IDirectorService, DirectorService>();
 builder.Services.AddScoped<IPaisService, PaisService>();
+builder.Services.AddScoped<IProductoService, ProductoService>();
+builder.Services.AddScoped<ITiposProductoService, TiposProductoService>();
 
 // --- JWT Authentication ---
 builder
