@@ -1,86 +1,74 @@
-﻿// Archivo: Controllers/ComprasController.cs (Reemplaza/Renombra ReservasController.cs)
+﻿// Archivo: Controllers/ComprasController.cs
+
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 using Cine2025.DTOs;
 using Cine2025.Services.Interfaces;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims; // Necesario para leer el token
-using WebApplication1.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace Cine2025.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
-    [Authorize] // IMPIDE el acceso sin un token JWT válido (LOGIN)
+    [Route("api/[controller]")] // Esto mapea a la ruta /api/Compras
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)] // Requiere que el usuario esté autenticado con un token JWT válido
     public class ComprasController : ControllerBase
     {
-        private readonly ICompraService _service;
+        private readonly ICompraService _compraService;
 
-        public ComprasController(ICompraService service) // Inyección del nuevo servicio
+        public ComprasController(ICompraService compraService)
         {
-            _service = service;
+            _compraService = compraService;
         }
 
-        // Método auxiliar para obtener el IdUsuario del token de forma segura
+        // Método auxiliar para extraer el ID del usuario del token JWT
+        // Usa ClaimTypes.NameIdentifier, que es el estándar para el ID de la entidad principal.
         private int GetUserId()
         {
+            // Busca el Claim que contiene el ID de usuario (generalmente NameIdentifier o Sub)
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            // Valida que exista y sea un número
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int id))
             {
-                throw new UnauthorizedAccessException("ID de Usuario no disponible o inválido en el token. Por favor, vuelva a iniciar sesión.");
+                // Si llegamos aquí, el token está mal formado o no contiene el ID
+                // Esto es una excepción rara bajo [Authorize], pero se maneja.
+                throw new UnauthorizedAccessException("ID de Usuario no disponible o inválido en el token.");
             }
             return id;
         }
 
-        // Endpoint 1: Agregar butacas (Detalle de Función)
-        [HttpPost("butaca")]
-        public async Task<IActionResult> AgregarButaca([FromBody] DetalleButacaInputDto dto)
+        // Endpoint único para la compra completa: POST /api/Compras
+        [HttpPost]
+        [ProducesResponseType(201)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> CrearCompraCompleta([FromBody] CompraInputDto dto)
         {
             try
             {
+                // 1. Extraer el ID del usuario autenticado del token
                 var idUsuario = GetUserId();
-                var idDetalle = await _service.AgregarDetalleButacaAsync(idUsuario, dto);
-                return Created($"/api/Compras/Detalle/{idDetalle}", new { message = "Butaca agregada al carro temporal con éxito.", idDetalle = idDetalle });
+
+                // 2. Ejecutar la lógica de negocio completa y la transacción atómica
+                // El Service se encarga de las validaciones de negocio y de llamar al Repository.
+                int idCompra = await _compraService.CrearCompraCompletaAsync(idUsuario, dto);
+
+                // 3. Respuesta de éxito (201 Created)
+                return StatusCode(201, new
+                {
+                    message = "Compra procesada y finalizada con éxito.",
+                    idCompra = idCompra
+                });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                // Captura el error si GetUserId falla por un token inválido
+                return Unauthorized(new { error = ex.Message });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = ex.Message });
-            }
-        }
-
-        // Endpoint 2: Agregar productos (Detalle de Producto)
-        [HttpPost("producto")]
-        public async Task<IActionResult> AgregarProducto([FromBody] DetalleProductoInputDto dto)
-        {
-            try
-            {
-                var idUsuario = GetUserId();
-                var idDetalle = await _service.AgregarDetalleProductoAsync(idUsuario, dto);
-                return Created($"/api/Compras/Detalle/{idDetalle}", new { message = "Producto agregado al carro temporal con éxito.", idDetalle = idDetalle });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
-        }
-
-
-        // Endpoint 3: Finalizar la compra (Requiere solo forma de pago)
-        [HttpPost("Finalizar")]
-        public async Task<IActionResult> FinalizarCompra([FromBody] FinalizarCompraDto dto)
-        {
-            try
-            {
-                var idUsuario = GetUserId(); // Obtiene el cliente logueado automáticamente
-                var idCompra = await _service.FinalizarCompraAsync(idUsuario, dto.IdFormaPago);
-                return Created($"/api/Compras/{idCompra}", new { message = "Compra finalizada con éxito.", idCompra = idCompra });
-            }
-            catch (UnauthorizedAccessException)
-            {
-                return Unauthorized(new { error = "Usuario no autorizado. Inicie sesión." });
-            }
-            catch (Exception ex)
-            {
-                // Incluye el error de "Carro vacío" que puede venir del servicio
+                // Captura los errores de lógica de negocio (ej: butaca ocupada, no cliente, FK, NOT NULL)
+                // que son relanzados desde el Service/Repository.
                 return BadRequest(new { error = ex.Message });
             }
         }

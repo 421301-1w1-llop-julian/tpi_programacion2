@@ -58,6 +58,20 @@ builder
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret)),
             ClockSkew = TimeSpan.Zero,
         };
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                // Si la autenticación falla (token caducado, firma inválida, etc.)
+                // Establece el estado de respuesta a 401 Unauthorized y detiene el procesamiento
+                context.Response.StatusCode = 401;
+                context.Response.ContentType = "application/json";
+                // Puedes personalizar el cuerpo aquí para mayor claridad, pero 401 es suficiente.
+                context.Response.WriteAsync("{\"error\":\"Token de autenticación inválido o caducado.\"}");
+                context.Fail("Token de autenticación inválido o caducado.");
+                return Task.CompletedTask;
+            }
+        };
     });
 
 // --- Controllers & Swagger ---
@@ -80,12 +94,16 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// 1. Usa Routing (Identifica a dónde va la petición: /api/Compras)
 app.UseRouting();
 
-app.UseAuthentication(); 
+// 2. Usa Authentication (Lee el token 'Bearer' y extrae el ID)
+app.UseAuthentication();
 
-app.UseAuthorization();
+// 3. Usa Authorization (Aplica la restricción [Authorize] a la ruta)
+app.UseAuthorization(); // <--- ¡Esta línea es la más crítica!
 
+// 4. Mapea Controllers (Ejecuta el código del ComprasController)
 app.MapControllers();
 
 app.Run();

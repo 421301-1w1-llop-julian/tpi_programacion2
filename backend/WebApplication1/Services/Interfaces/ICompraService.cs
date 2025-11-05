@@ -1,17 +1,11 @@
-﻿using Cine2025.DTOs;
-using WebApplication1.DTOs;
+﻿// Archivo: Services/Interfaces/ICompraService.cs
+using Cine2025.DTOs;
 
 namespace Cine2025.Services.Interfaces
 {
     public interface ICompraService
     {
-        // Agrega una butaca (función) al carro temporal (Reserva)
-        Task<int> AgregarDetalleButacaAsync(int idUsuario, DetalleButacaInputDto dto);
-
-        // Agrega un producto (candy bar) al carro temporal (Reserva)
-        Task<int> AgregarDetalleProductoAsync(int idUsuario, DetalleProductoInputDto dto);
-
-        // Convierte el carro temporal en Compra (recibe IdFormaPago, obtiene IdCliente del token)
-        Task<int> FinalizarCompraAsync(int idUsuario, int idFormaPago);
+        // Único método: Recibe la compra completa y la procesa.
+        Task<int> CrearCompraCompletaAsync(int idUsuario, CompraInputDto dto);
     }
 }
