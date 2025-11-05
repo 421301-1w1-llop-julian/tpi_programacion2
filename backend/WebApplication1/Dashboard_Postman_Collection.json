@@ -1,0 +1,561 @@
+{
+	"info": {
+		"_postman_id": "dashboard-collection-2025",
+		"name": "Cine Dashboard - API",
+		"description": "Colección para probar el Dashboard del Administrador",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Autenticación",
+			"item": [
+				{
+					"name": "Login - Obtener Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.token) {",
+									"        pm.environment.set(\"jwt_token\", jsonData.token);",
+									"        console.log(\"Token guardado en variable de entorno\");",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"admin\",\n  \"password\": \"tu_password\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/Auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"Auth",
+								"login"
+							]
+						},
+						"description": "Primero debes autenticarte para obtener el token JWT. Reemplaza 'admin' y 'tu_password' con tus credenciales reales."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Dashboard",
+			"item": [
+				{
+					"name": "Dashboard Completo - Sin Filtros",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/Dashboard",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"Dashboard"
+							]
+						},
+						"description": "Obtiene todos los datos del dashboard: estadísticas generales, películas más vistas, reservas, compras y funciones."
+					},
+					"response": []
+				},
+				{
+					"name": "Dashboard - Filtrado por Fechas",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/Dashboard?fechaDesde=2025-01-01&fechaHasta=2025-12-31",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"Dashboard"
+							],
+							"query": [
+								{
+									"key": "fechaDesde",
+									"value": "2025-01-01"
+								},
+								{
+									"key": "fechaHasta",
+									"value": "2025-12-31"
+								}
+							]
+						},
+						"description": "Obtiene el dashboard filtrado por un rango de fechas."
+					},
+					"response": []
+				},
+				{
+					"name": "Dashboard - Filtrado por Película",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/Dashboard?IdPelicula=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"Dashboard"
+							],
+							"query": [
+								{
+									"key": "IdPelicula",
+									"value": "1",
+									"description": "ID de la película"
+								}
+							]
+						},
+						"description": "Obtiene el dashboard filtrado por una película específica."
+					},
+					"response": []
+				},
+				{
+					"name": "Dashboard - Solo Películas Más Vistas",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/Dashboard?soloPeliculasMasVistas=true&TopPeliculas=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"Dashboard"
+							],
+							"query": [
+								{
+									"key": "soloPeliculasMasVistas",
+									"value": "true"
+								},
+								{
+									"key": "TopPeliculas",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Obtiene solo el ranking de películas más vistas (sin otros datos)."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Películas Más Vistas",
+			"item": [
+				{
+					"name": "Top 10 Películas Más Vistas",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/Dashboard/peliculas-mas-vistas?top=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"Dashboard",
+								"peliculas-mas-vistas"
+							],
+							"query": [
+								{
+									"key": "top",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Obtiene las 10 películas más vistas."
+					},
+					"response": []
+				},
+				{
+					"name": "Películas Más Vistas - Con Filtro de Fechas",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/Dashboard/peliculas-mas-vistas?top=5&fechaDesde=2025-01-01&fechaHasta=2025-03-31",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"Dashboard",
+								"peliculas-mas-vistas"
+							],
+							"query": [
+								{
+									"key": "top",
+									"value": "5"
+								},
+								{
+									"key": "fechaDesde",
+									"value": "2025-01-01"
+								},
+								{
+									"key": "fechaHasta",
+									"value": "2025-03-31"
+								}
+							]
+						},
+						"description": "Obtiene las 5 películas más vistas en un rango de fechas específico."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. Reservas",
+			"item": [
+				{
+					"name": "Todas las Reservas",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/Dashboard/reservas",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"Dashboard",
+								"reservas"
+							]
+						},
+						"description": "Obtiene todas las reservas."
+					},
+					"response": []
+				},
+				{
+					"name": "Reservas - Por Cliente",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/Dashboard/reservas?IdCliente=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"Dashboard",
+								"reservas"
+							],
+							"query": [
+								{
+									"key": "IdCliente",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Obtiene las reservas de un cliente específico."
+					},
+					"response": []
+				},
+				{
+					"name": "Reservas - Por Película",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/Dashboard/reservas?IdPelicula=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"Dashboard",
+								"reservas"
+							],
+							"query": [
+								{
+									"key": "IdPelicula",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Obtiene las reservas de una película específica."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "5. Compras",
+			"item": [
+				{
+					"name": "Todas las Compras",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/Dashboard/compras",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"Dashboard",
+								"compras"
+							]
+						},
+						"description": "Obtiene todas las compras."
+					},
+					"response": []
+				},
+				{
+					"name": "Compras - Por Película",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/Dashboard/compras?IdPelicula=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"Dashboard",
+								"compras"
+							],
+							"query": [
+								{
+									"key": "IdPelicula",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Obtiene las compras de una película específica."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "6. Funciones",
+			"item": [
+				{
+					"name": "Todas las Funciones",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/Dashboard/funciones",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"Dashboard",
+								"funciones"
+							]
+						},
+						"description": "Obtiene todas las funciones."
+					},
+					"response": []
+				},
+				{
+					"name": "Funciones - Por Película",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/Dashboard/funciones?IdPelicula=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"Dashboard",
+								"funciones"
+							],
+							"query": [
+								{
+									"key": "IdPelicula",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Obtiene las funciones de una película específica."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://localhost:7285",
+			"type": "string"
+		},
+		{
+			"key": "jwt_token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
+

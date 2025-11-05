@@ -26,12 +26,24 @@ builder.Services.AddDbContext<CINE_2025_1W1_GRUPO_5Context>(options =>
 // --- Repositories ---
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<ITiposUsuarioRepository, TiposUsuarioRepository>();
+builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
+builder.Services.AddScoped<IGeneroRepository, GeneroRepository>();
+builder.Services.AddScoped<IIdiomaRepository, IdiomaRepository>();
+builder.Services.AddScoped<IActorRepository, ActorRepository>();
+builder.Services.AddScoped<IDirectorRepository, DirectorRepository>();
+builder.Services.AddScoped<IPaisRepository, PaisRepository>();
 builder.Services.AddScoped<IProductosRepository, ProductoRepository>();
 builder.Services.AddScoped<ITiposProductoRepository, TiposProductoRepository>();
 
 // --- Services ---
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<ITiposUsuarioService, TiposUsuarioService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IGeneroService, GeneroService>();
+builder.Services.AddScoped<IIdiomaService, IdiomaService>();
+builder.Services.AddScoped<IActorService, ActorService>();
+builder.Services.AddScoped<IDirectorService, DirectorService>();
+builder.Services.AddScoped<IPaisService, PaisService>();
 builder.Services.AddScoped<IProductoService, ProductoService>();
 builder.Services.AddScoped<ITiposProductoService, TiposProductoService>();
 
