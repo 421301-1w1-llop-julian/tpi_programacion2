@@ -18,4 +18,5 @@ public partial class Actor
     public virtual Pais IdPaisNavigation { get; set; }
 
     public virtual ICollection<PeliculasActor> PeliculasActores { get; set; } = new List<PeliculasActor>();
+    public object NombreCompleto { get; internal set; }
 }

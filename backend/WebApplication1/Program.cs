@@ -27,14 +27,30 @@ builder.Services.AddDbContext<CINE_2025_1W1_GRUPO_5Context>(options =>
 // --- Repositories ---
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<ITiposUsuarioRepository, TiposUsuarioRepository>();
-// --- AÑADIDOS PARA RESERVAS ---
+// --- Aï¿½ADIDOS PARA RESERVAS ---
 builder.Services.AddScoped<ICompraRepository, CompraRepository>();
+builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
+builder.Services.AddScoped<IGeneroRepository, GeneroRepository>();
+builder.Services.AddScoped<IIdiomaRepository, IdiomaRepository>();
+builder.Services.AddScoped<IActorRepository, ActorRepository>();
+builder.Services.AddScoped<IDirectorRepository, DirectorRepository>();
+builder.Services.AddScoped<IPaisRepository, PaisRepository>();
+builder.Services.AddScoped<IProductosRepository, ProductoRepository>();
+builder.Services.AddScoped<ITiposProductoRepository, TiposProductoRepository>();
 
 // --- Services ---
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<ITiposUsuarioService, TiposUsuarioService>();
-// --- AÑADIDOS PARA RESERVAS ---
+// --- Aï¿½ADIDOS PARA RESERVAS ---
 builder.Services.AddScoped<ICompraService, CompraService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IGeneroService, GeneroService>();
+builder.Services.AddScoped<IIdiomaService, IdiomaService>();
+builder.Services.AddScoped<IActorService, ActorService>();
+builder.Services.AddScoped<IDirectorService, DirectorService>();
+builder.Services.AddScoped<IPaisService, PaisService>();
+builder.Services.AddScoped<IProductoService, ProductoService>();
+builder.Services.AddScoped<ITiposProductoService, TiposProductoService>();
 
 // --- JWT Authentication ---
 builder
@@ -62,13 +78,13 @@ builder
         {
             OnAuthenticationFailed = context =>
             {
-                // Si la autenticación falla (token caducado, firma inválida, etc.)
+                // Si la autenticaciï¿½n falla (token caducado, firma invï¿½lida, etc.)
                 // Establece el estado de respuesta a 401 Unauthorized y detiene el procesamiento
                 context.Response.StatusCode = 401;
                 context.Response.ContentType = "application/json";
-                // Puedes personalizar el cuerpo aquí para mayor claridad, pero 401 es suficiente.
-                context.Response.WriteAsync("{\"error\":\"Token de autenticación inválido o caducado.\"}");
-                context.Fail("Token de autenticación inválido o caducado.");
+                // Puedes personalizar el cuerpo aquï¿½ para mayor claridad, pero 401 es suficiente.
+                context.Response.WriteAsync("{\"error\":\"Token de autenticaciï¿½n invï¿½lido o caducado.\"}");
+                context.Fail("Token de autenticaciï¿½n invï¿½lido o caducado.");
                 return Task.CompletedTask;
             }
         };
@@ -94,16 +110,16 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// 1. Usa Routing (Identifica a dónde va la petición: /api/Compras)
+// 1. Usa Routing (Identifica a dï¿½nde va la peticiï¿½n: /api/Compras)
 app.UseRouting();
 
 // 2. Usa Authentication (Lee el token 'Bearer' y extrae el ID)
 app.UseAuthentication();
 
-// 3. Usa Authorization (Aplica la restricción [Authorize] a la ruta)
-app.UseAuthorization(); // <--- ¡Esta línea es la más crítica!
+// 3. Usa Authorization (Aplica la restricciï¿½n [Authorize] a la ruta)
+app.UseAuthorization(); // <--- ï¿½Esta lï¿½nea es la mï¿½s crï¿½tica!
 
-// 4. Mapea Controllers (Ejecuta el código del ComprasController)
+// 4. Mapea Controllers (Ejecuta el cï¿½digo del ComprasController)
 app.MapControllers();
 
 app.Run();
