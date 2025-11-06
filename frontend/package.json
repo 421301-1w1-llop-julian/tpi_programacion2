@@ -1,0 +1,13 @@
+{
+  "name": "cinemark-frontend",
+  "version": "1.0.0",
+  "description": "Frontend SPA para sistema de cine",
+  "scripts": {
+    "start": "npx http-server -p 5500 -o",
+    "dev": "npx http-server -p 5500 -o"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
+
