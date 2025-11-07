@@ -2,6 +2,7 @@
 const router = {
     routes: {},
     currentRoute: null,
+    viewPath: '/views/',
 
     init() {
         // Handle hash changes
@@ -10,8 +11,8 @@ const router = {
         this.handleRoute();
     },
 
-    register(path, handler) {
-        this.routes[path] = handler;
+    register(path, viewFile, handler = null) {
+        this.routes[path] = { viewFile, handler };
     },
 
     navigate(path) {
@@ -38,10 +39,50 @@ const router = {
         return params;
     },
 
+    async loadView(viewFile) {
+        try {
+            const response = await fetch(this.viewPath + viewFile);
+            if (!response.ok) {
+                throw new Error(`Failed to load view: ${viewFile}`);
+            }
+            return await response.text();
+        } catch (error) {
+            console.error('Error loading view:', error);
+            return `
+                <div class="container mx-auto px-4 py-8">
+                    <div class="bg-red-900 bg-opacity-50 border border-red-500 rounded p-4">
+                        <h2 class="text-xl font-bold mb-2">Error</h2>
+                        <p>No se pudo cargar la vista: ${viewFile}</p>
+                    </div>
+                </div>
+            `;
+        }
+    },
+
+    updateActiveNavLink() {
+        const currentPath = window.location.hash.slice(1) || '/';
+        document.querySelectorAll('.nav-link').forEach(link => {
+            const href = link.getAttribute('href');
+            if (href) {
+                const linkPath = href.replace('#', '');
+                if (linkPath === currentPath || (linkPath !== '/' && currentPath.startsWith(linkPath))) {
+                    link.classList.add('text-cine-red');
+                    link.classList.remove('text-white');
+                } else {
+                    link.classList.remove('text-cine-red');
+                    link.classList.add('text-white');
+                }
+            }
+        });
+    },
+
     async handleRoute() {
         const hash = window.location.hash.slice(1) || '/';
         const path = hash.split('?')[0];
         const queryParams = new URLSearchParams(window.location.hash.split('?')[1] || '');
+
+        // Update active nav link
+        this.updateActiveNavLink();
 
         // Find matching route
         let matchedRoute = null;
@@ -62,7 +103,14 @@ const router = {
             app.innerHTML = '<div class="flex justify-center items-center min-h-screen"><div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cine-red"></div></div>';
             
             try {
-                await this.routes[matchedRoute](routeParams, queryParams);
+                const route = this.routes[matchedRoute];
+                const html = await this.loadView(route.viewFile);
+                app.innerHTML = html;
+                
+                // Call handler if provided
+                if (route.handler) {
+                    await route.handler(routeParams, queryParams);
+                }
             } catch (error) {
                 console.error('Route error:', error);
                 app.innerHTML = `
