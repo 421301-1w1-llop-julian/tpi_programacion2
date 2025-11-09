@@ -1,5 +1,4 @@
 ﻿using WebApplication1.DTOs.Pelicula;
-using WebApplication1.DTOs;
 using WebApplication1.Models;
 using WebApplication1.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;

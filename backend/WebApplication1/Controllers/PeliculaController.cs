@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using WebApplication1.DTOs.Pelicula;
-using WebApplication1.DTOs;
 using WebApplication1.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 
