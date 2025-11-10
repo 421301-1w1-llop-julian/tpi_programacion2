@@ -675,6 +675,11 @@ public partial class CINE_2025_1W1_GRUPO_5Context : DbContext
                 .HasMaxLength(150)
                 .HasColumnName("nombre");
 
+            entity.Property(e => e.Imagen)
+                .IsRequired()
+                .HasMaxLength(300)
+                .HasColumnName("imagen");
+
             entity.HasOne(d => d.IdClasificacionNavigation).WithMany(p => p.Peliculas)
                 .HasForeignKey(d => d.IdClasificacion)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -695,6 +700,7 @@ public partial class CINE_2025_1W1_GRUPO_5Context : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_peliculas_tipos_publico");
         });
+
 
         modelBuilder.Entity<PeliculasActor>(entity =>
         {
@@ -799,11 +805,17 @@ public partial class CINE_2025_1W1_GRUPO_5Context : DbContext
                 .HasColumnType("decimal(10, 2)")
                 .HasColumnName("precio");
 
+            entity.Property(e => e.Imagen)
+                .IsRequired()
+                .HasMaxLength(300)
+                .HasColumnName("imagen");
+
             entity.HasOne(d => d.IdTipoProductoNavigation).WithMany(p => p.Productos)
                 .HasForeignKey(d => d.IdTipoProducto)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_productos_tipos");
         });
+
 
         modelBuilder.Entity<Provincia>(entity =>
         {

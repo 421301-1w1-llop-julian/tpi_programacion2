@@ -2,6 +2,7 @@
 #nullable disable
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WebApplication1.Models;
 
@@ -18,5 +19,8 @@ public partial class Actor
     public virtual Pais IdPaisNavigation { get; set; }
 
     public virtual ICollection<PeliculasActor> PeliculasActores { get; set; } = new List<PeliculasActor>();
-    public object NombreCompleto { get; internal set; }
+
+    [NotMapped]
+    public string NombreCompleto => $"{Nombre} {Apellido}";
+
 }

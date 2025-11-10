@@ -1,7 +1,7 @@
 using System.Text;
 using Cine2025.Repositories;
 using Cine2025.Repositories.Interfaces;
-using Cine2025.Services; 
+using Cine2025.Services;
 using Cine2025.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -27,7 +27,6 @@ builder.Services.AddDbContext<CINE_2025_1W1_GRUPO_5Context>(options =>
 // --- Repositories ---
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<ITiposUsuarioRepository, TiposUsuarioRepository>();
-// --- A�ADIDOS PARA RESERVAS ---
 builder.Services.AddScoped<ICompraRepository, CompraRepository>();
 builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
 builder.Services.AddScoped<IGeneroRepository, GeneroRepository>();
@@ -37,11 +36,15 @@ builder.Services.AddScoped<IDirectorRepository, DirectorRepository>();
 builder.Services.AddScoped<IPaisRepository, PaisRepository>();
 builder.Services.AddScoped<IProductosRepository, ProductoRepository>();
 builder.Services.AddScoped<ITiposProductoRepository, TiposProductoRepository>();
+builder.Services.AddScoped<IPeliculaRepository, PeliculaRepository>();
+builder.Services.AddScoped<IClasificacionRepository, ClasificacionRepository>();
+builder.Services.AddScoped<ITipoPublicoRepository, TipoPublicoRepository>();
+
+
 
 // --- Services ---
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<ITiposUsuarioService, TiposUsuarioService>();
-// --- A�ADIDOS PARA RESERVAS ---
 builder.Services.AddScoped<ICompraService, CompraService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IGeneroService, GeneroService>();
@@ -51,6 +54,9 @@ builder.Services.AddScoped<IDirectorService, DirectorService>();
 builder.Services.AddScoped<IPaisService, PaisService>();
 builder.Services.AddScoped<IProductoService, ProductoService>();
 builder.Services.AddScoped<ITiposProductoService, TiposProductoService>();
+builder.Services.AddScoped<IPeliculaService, PeliculaService>();
+builder.Services.AddScoped<IClasificacionService, ClasificacionService>();
+builder.Services.AddScoped<ITipoPublicoService, TipoPublicoService>();
 
 // --- JWT Authentication ---
 builder
@@ -99,6 +105,18 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowLocal", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:5500", "http://127.0.0.1:5500")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
 var app = builder.Build();
 
 // --- Middleware pipeline ---
@@ -109,6 +127,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowLocal");
 
 // 1. Usa Routing (Identifica a d�nde va la petici�n: /api/Compras)
 app.UseRouting();

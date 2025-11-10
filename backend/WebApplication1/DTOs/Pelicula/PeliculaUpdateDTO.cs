@@ -5,6 +5,7 @@
         public int IdPelicula { get; set; }
         public string? Nombre { get; set; }
         public string? Descripcion { get; set; }
+        public string Imagen { get; set; }
         public int? Duracion { get; set; }
         public DateOnly? FechaEstreno { get; set; }
         public int? IdClasificacion { get; set; }

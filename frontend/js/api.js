@@ -1,22 +1,22 @@
 // API Configuration
 // Update this URL to match your backend API URL
 // Default ports: https://localhost:7285 or http://localhost:5024
-const API_BASE_URL = 'https://localhost:7285/api'; // Adjust to your backend URL
+const API_BASE_URL = "https://localhost:7285/api"; // Adjust to your backend URL
 
 // Helper function to get auth token
 function getAuthToken() {
-    return localStorage.getItem('token');
+    return localStorage.getItem("token");
 }
 
 // Helper function to get headers
 function getHeaders(includeAuth = true) {
     const headers = {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
     };
     if (includeAuth) {
         const token = getAuthToken();
         if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
+            headers["Authorization"] = `Bearer ${token}`;
         }
     }
     return headers;
@@ -27,110 +27,124 @@ const api = {
     // Auth
     async register(data) {
         const response = await fetch(`${API_BASE_URL}/auth/register`, {
-            method: 'POST',
+            method: "POST",
             headers: getHeaders(false),
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
         });
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.message || 'Error al registrar');
+            throw new Error(error.message || "Error al registrar");
         }
         return await response.json();
     },
 
     async login(data) {
         const response = await fetch(`${API_BASE_URL}/auth/login`, {
-            method: 'POST',
+            method: "POST",
             headers: getHeaders(false),
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
         });
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.message || 'Credenciales inválidas');
+            throw new Error(error.message || "Credenciales inválidas");
         }
         return await response.json();
     },
 
     // Movies
-    async getMovies() {
-        const response = await fetch(`${API_BASE_URL}/peliculas`, {
-            headers: getHeaders(false)
+    async getMovies(filters = {}) {
+        const params = new URLSearchParams();
+        // Only append defined filters
+        Object.keys(filters || {}).forEach((k) => {
+            const v = filters[k];
+            if (v !== undefined && v !== null && String(v) !== "")
+                params.append(k, v);
         });
-        if (!response.ok) throw new Error('Error al cargar películas');
+
+        const url = params.toString()
+            ? `${API_BASE_URL}/Pelicula?${params.toString()}`
+            : `${API_BASE_URL}/Pelicula`;
+
+        const response = await fetch(url, {
+            headers: getHeaders(false),
+        });
+        if (!response.ok) throw new Error("Error al cargar películas");
         return await response.json();
     },
-
     async getMovie(id) {
-        const response = await fetch(`${API_BASE_URL}/peliculas/${id}`, {
-            headers: getHeaders(false)
+        const response = await fetch(`${API_BASE_URL}/Pelicula/${id}`, {
+            headers: getHeaders(false),
         });
-        if (!response.ok) throw new Error('Error al cargar película');
+        if (!response.ok) throw new Error("Error al cargar película");
         return await response.json();
     },
 
+    // Simple client-side search fallback: backend has no /search endpoint for Pelicula
     async searchMovies(query) {
-        const response = await fetch(`${API_BASE_URL}/peliculas/search?q=${encodeURIComponent(query)}`, {
-            headers: getHeaders(false)
-        });
-        if (!response.ok) throw new Error('Error en búsqueda');
-        return await response.json();
+        // Prefer server-side search when available (use PascalCase key to match backend)
+        return await this.getMovies({ Search: query });
     },
 
     // Products
     async getProducts() {
         const response = await fetch(`${API_BASE_URL}/productos`, {
-            headers: getHeaders(false)
+            headers: getHeaders(false),
         });
-        if (!response.ok) throw new Error('Error al cargar productos');
+        if (!response.ok) throw new Error("Error al cargar productos");
         return await response.json();
     },
 
     async getProduct(id) {
         const response = await fetch(`${API_BASE_URL}/productos/${id}`, {
-            headers: getHeaders(false)
+            headers: getHeaders(false),
         });
-        if (!response.ok) throw new Error('Error al cargar producto');
+        if (!response.ok) throw new Error("Error al cargar producto");
         return await response.json();
     },
 
     // Functions
     async getFunctions(movieId = null) {
-        const url = movieId 
-            ? `${API_BASE_URL}/funciones?peliculaId=${movieId}`
-            : `${API_BASE_URL}/funciones`;
+        const url = movieId
+            ? `${API_BASE_URL}/funcion?peliculaId=${movieId}`
+            : `${API_BASE_URL}/funcion`;
         const response = await fetch(url, {
-            headers: getHeaders(false)
+            headers: getHeaders(false),
         });
-        if (!response.ok) throw new Error('Error al cargar funciones');
+        if (!response.ok) throw new Error("Error al cargar funciones");
         return await response.json();
     },
 
     async getFunction(id) {
-        const response = await fetch(`${API_BASE_URL}/funciones/${id}`, {
-            headers: getHeaders(false)
+        const response = await fetch(`${API_BASE_URL}/funcion/${id}`, {
+            headers: getHeaders(false),
         });
-        if (!response.ok) throw new Error('Error al cargar función');
+        if (!response.ok) throw new Error("Error al cargar función");
         return await response.json();
     },
 
     async getSeats(functionId) {
-        const response = await fetch(`${API_BASE_URL}/funciones/${functionId}/butacas`, {
-            headers: getHeaders(false)
-        });
-        if (!response.ok) throw new Error('Error al cargar butacas');
+        const response = await fetch(
+            `${API_BASE_URL}/funcion/${functionId}/butacas`,
+            {
+                headers: getHeaders(false),
+            }
+        );
+        if (!response.ok) throw new Error("Error al cargar butacas");
         return await response.json();
     },
 
     // Reservations
     async createReservation(data) {
         const response = await fetch(`${API_BASE_URL}/reservas`, {
-            method: 'POST',
+            method: "POST",
             headers: getHeaders(),
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
         });
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.error || error.message || 'Error al crear reserva');
+            throw new Error(
+                error.error || error.message || "Error al crear reserva"
+            );
         }
         return await response.json();
     },
@@ -138,238 +152,240 @@ const api = {
     // Dashboard - Analytics
     async getAnalytics(filters = {}) {
         const params = new URLSearchParams(filters);
-        const response = await fetch(`${API_BASE_URL}/dashboard/analytics?${params}`, {
-            headers: getHeaders()
-        });
-        if (!response.ok) throw new Error('Error al cargar analíticas');
+        const response = await fetch(
+            `${API_BASE_URL}/dashboard/analytics?${params}`,
+            {
+                headers: getHeaders(),
+            }
+        );
+        if (!response.ok) throw new Error("Error al cargar analíticas");
         return await response.json();
     },
 
     // Dashboard - CRUD Operations
     async createMovie(data) {
-        const response = await fetch(`${API_BASE_URL}/peliculas`, {
-            method: 'POST',
+        const response = await fetch(`${API_BASE_URL}/Pelicula`, {
+            method: "POST",
             headers: getHeaders(),
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
         });
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.message || 'Error al crear película');
+            throw new Error(error.message || "Error al crear película");
         }
         return await response.json();
     },
 
     async updateMovie(id, data) {
-        const response = await fetch(`${API_BASE_URL}/peliculas/${id}`, {
-            method: 'PUT',
+        const response = await fetch(`${API_BASE_URL}/Pelicula/${id}`, {
+            method: "PUT",
             headers: getHeaders(),
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
         });
-        if (!response.ok) throw new Error('Error al actualizar película');
+        if (!response.ok) throw new Error("Error al actualizar película");
         return await response.json();
     },
 
     async deleteMovie(id) {
-        const response = await fetch(`${API_BASE_URL}/peliculas/${id}`, {
-            method: 'DELETE',
-            headers: getHeaders()
+        const response = await fetch(`${API_BASE_URL}/Pelicula/${id}`, {
+            method: "DELETE",
+            headers: getHeaders(),
         });
-        if (!response.ok) throw new Error('Error al eliminar película');
+        if (!response.ok) throw new Error("Error al eliminar película");
         return true;
     },
 
     async createProduct(data) {
         const response = await fetch(`${API_BASE_URL}/productos`, {
-            method: 'POST',
+            method: "POST",
             headers: getHeaders(),
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
         });
-        if (!response.ok) throw new Error('Error al crear producto');
+        if (!response.ok) throw new Error("Error al crear producto");
         return await response.json();
     },
 
     async updateProduct(id, data) {
         const response = await fetch(`${API_BASE_URL}/productos/${id}`, {
-            method: 'PUT',
+            method: "PUT",
             headers: getHeaders(),
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
         });
-        if (!response.ok) throw new Error('Error al actualizar producto');
+        if (!response.ok) throw new Error("Error al actualizar producto");
         return await response.json();
     },
 
     async deleteProduct(id) {
         const response = await fetch(`${API_BASE_URL}/productos/${id}`, {
-            method: 'DELETE',
-            headers: getHeaders()
+            method: "DELETE",
+            headers: getHeaders(),
         });
-        if (!response.ok) throw new Error('Error al eliminar producto');
+        if (!response.ok) throw new Error("Error al eliminar producto");
         return true;
     },
 
     async createFunction(data) {
-        const response = await fetch(`${API_BASE_URL}/funciones`, {
-            method: 'POST',
+        const response = await fetch(`${API_BASE_URL}/funcion`, {
+            method: "POST",
             headers: getHeaders(),
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
         });
-        if (!response.ok) throw new Error('Error al crear función');
+        if (!response.ok) throw new Error("Error al crear función");
         return await response.json();
     },
 
     async updateFunction(id, data) {
-        const response = await fetch(`${API_BASE_URL}/funciones/${id}`, {
-            method: 'PUT',
+        const response = await fetch(`${API_BASE_URL}/funcion/${id}`, {
+            method: "PUT",
             headers: getHeaders(),
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
         });
-        if (!response.ok) throw new Error('Error al actualizar función');
+        if (!response.ok) throw new Error("Error al actualizar función");
         return await response.json();
     },
 
     async deleteFunction(id) {
-        const response = await fetch(`${API_BASE_URL}/funciones/${id}`, {
-            method: 'DELETE',
-            headers: getHeaders()
+        const response = await fetch(`${API_BASE_URL}/funcion/${id}`, {
+            method: "DELETE",
+            headers: getHeaders(),
         });
-        if (!response.ok) throw new Error('Error al eliminar función');
+        if (!response.ok) throw new Error("Error al eliminar función");
         return true;
     },
 
     // Reference data
     async getGenres() {
-        const response = await fetch(`${API_BASE_URL}/generos`, {
-            headers: getHeaders(false)
+        const response = await fetch(`${API_BASE_URL}/genero`, {
+            headers: getHeaders(false),
         });
-        if (!response.ok) throw new Error('Error al cargar géneros');
+        if (!response.ok) throw new Error("Error al cargar géneros");
         return await response.json();
     },
 
     async getLanguages() {
-        const response = await fetch(`${API_BASE_URL}/idiomas`, {
-            headers: getHeaders(false)
+        const response = await fetch(`${API_BASE_URL}/idioma`, {
+            headers: getHeaders(false),
         });
-        if (!response.ok) throw new Error('Error al cargar idiomas');
+        if (!response.ok) throw new Error("Error al cargar idiomas");
         return await response.json();
     },
 
     async getClassifications() {
-        const response = await fetch(`${API_BASE_URL}/clasificaciones`, {
-            headers: getHeaders(false)
+        const response = await fetch(`${API_BASE_URL}/Clasificaciones`, {
+            headers: getHeaders(false),
         });
-        if (!response.ok) throw new Error('Error al cargar clasificaciones');
+        if (!response.ok) throw new Error("Error al cargar clasificaciones");
         return await response.json();
     },
 
     async getAudienceTypes() {
-        const response = await fetch(`${API_BASE_URL}/tipos-publico`, {
-            headers: getHeaders(false)
+        const response = await fetch(`${API_BASE_URL}/TiposPublico`, {
+            headers: getHeaders(false),
         });
-        if (!response.ok) throw new Error('Error al cargar tipos de público');
+        if (!response.ok) throw new Error("Error al cargar tipos de público");
         return await response.json();
     },
 
     async getActors() {
         const response = await fetch(`${API_BASE_URL}/actores`, {
-            headers: getHeaders(false)
+            headers: getHeaders(false),
         });
-        if (!response.ok) throw new Error('Error al cargar actores');
+        if (!response.ok) throw new Error("Error al cargar actores");
         return await response.json();
     },
 
     async createActor(data) {
         const response = await fetch(`${API_BASE_URL}/actores`, {
-            method: 'POST',
+            method: "POST",
             headers: getHeaders(),
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
         });
-        if (!response.ok) throw new Error('Error al crear actor');
+        if (!response.ok) throw new Error("Error al crear actor");
         return await response.json();
     },
 
     async updateActor(id, data) {
         const response = await fetch(`${API_BASE_URL}/actores/${id}`, {
-            method: 'PUT',
+            method: "PUT",
             headers: getHeaders(),
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
         });
-        if (!response.ok) throw new Error('Error al actualizar actor');
+        if (!response.ok) throw new Error("Error al actualizar actor");
         return await response.json();
     },
 
     async deleteActor(id) {
         const response = await fetch(`${API_BASE_URL}/actores/${id}`, {
-            method: 'DELETE',
-            headers: getHeaders()
+            method: "DELETE",
+            headers: getHeaders(),
         });
-        if (!response.ok) throw new Error('Error al eliminar actor');
+        if (!response.ok) throw new Error("Error al eliminar actor");
         return true;
     },
 
     async getDirectors() {
         const response = await fetch(`${API_BASE_URL}/directores`, {
-            headers: getHeaders(false)
+            headers: getHeaders(false),
         });
-        if (!response.ok) throw new Error('Error al cargar directores');
+        if (!response.ok) throw new Error("Error al cargar directores");
         return await response.json();
     },
 
     async createDirector(data) {
         const response = await fetch(`${API_BASE_URL}/directores`, {
-            method: 'POST',
+            method: "POST",
             headers: getHeaders(),
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
         });
-        if (!response.ok) throw new Error('Error al crear director');
+        if (!response.ok) throw new Error("Error al crear director");
         return await response.json();
     },
 
     async updateDirector(id, data) {
         const response = await fetch(`${API_BASE_URL}/directores/${id}`, {
-            method: 'PUT',
+            method: "PUT",
             headers: getHeaders(),
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
         });
-        if (!response.ok) throw new Error('Error al actualizar director');
+        if (!response.ok) throw new Error("Error al actualizar director");
         return await response.json();
     },
 
     async deleteDirector(id) {
         const response = await fetch(`${API_BASE_URL}/directores/${id}`, {
-            method: 'DELETE',
-            headers: getHeaders()
+            method: "DELETE",
+            headers: getHeaders(),
         });
-        if (!response.ok) throw new Error('Error al eliminar director');
+        if (!response.ok) throw new Error("Error al eliminar director");
         return true;
     },
 
     async createLanguage(data) {
-        const response = await fetch(`${API_BASE_URL}/idiomas`, {
-            method: 'POST',
+        const response = await fetch(`${API_BASE_URL}/idioma`, {
+            method: "POST",
             headers: getHeaders(),
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
         });
-        if (!response.ok) throw new Error('Error al crear idioma');
+        if (!response.ok) throw new Error("Error al crear idioma");
         return await response.json();
     },
 
     async updateLanguage(id, data) {
-        const response = await fetch(`${API_BASE_URL}/idiomas/${id}`, {
-            method: 'PUT',
+        const response = await fetch(`${API_BASE_URL}/idioma/${id}`, {
+            method: "PUT",
             headers: getHeaders(),
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
         });
-        if (!response.ok) throw new Error('Error al actualizar idioma');
+        if (!response.ok) throw new Error("Error al actualizar idioma");
         return await response.json();
     },
 
     async deleteLanguage(id) {
-        const response = await fetch(`${API_BASE_URL}/idiomas/${id}`, {
-            method: 'DELETE',
-            headers: getHeaders()
+        const response = await fetch(`${API_BASE_URL}/idioma/${id}`, {
+            method: "DELETE",
+            headers: getHeaders(),
         });
-        if (!response.ok) throw new Error('Error al eliminar idioma');
+        if (!response.ok) throw new Error("Error al eliminar idioma");
         return true;
-    }
+    },
 };
-
