@@ -294,6 +294,30 @@ const api = {
         return await response.json();
     },
 
+    async getActor(id) {
+        const response = await fetch(`${API_BASE_URL}/actores/${id}`, {
+            headers: getHeaders(false),
+        });
+        if (!response.ok) throw new Error("Error al cargar actor");
+        return await response.json();
+    },
+
+    async getCountries() {
+        const response = await fetch(`${API_BASE_URL}/pais`, {
+            headers: getHeaders(false),
+        });
+        if (!response.ok) throw new Error("Error al cargar países");
+        return await response.json();
+    },
+
+    async getProductTypes() {
+        const response = await fetch(`${API_BASE_URL}/tiposproductos`, {
+            headers: getHeaders(false),
+        });
+        if (!response.ok) throw new Error("Error al cargar tipos de producto");
+        return await response.json();
+    },
+
     async createActor(data) {
         const response = await fetch(`${API_BASE_URL}/actores`, {
             method: "POST",
