@@ -31,11 +31,13 @@ async function candyViewHandler(routeParams, queryParams) {
     });
 
     // If there are query params, prefill the filter controls
+    const sortFilter = document.getElementById("sort-filter");
     if (queryParams) {
         const qType = queryParams.get("TipoProductoId");
         const qPriceMin = queryParams.get("PrecioMin");
         const qPriceMax = queryParams.get("PrecioMax");
         const qSearch = queryParams.get("search");
+        const qOrdenar = queryParams.get("ordenarPor");
 
         if (qType) productTypeFilter.value = qType;
         if (qPriceMin)
@@ -43,6 +45,7 @@ async function candyViewHandler(routeParams, queryParams) {
         if (qPriceMax)
             document.getElementById("price-max-filter").value = qPriceMax;
         if (qSearch) document.getElementById("search-input").value = qSearch;
+        if (qOrdenar && sortFilter) sortFilter.value = qOrdenar;
     }
 
     // Apply initial filters from URL params
@@ -66,12 +69,14 @@ async function candyViewHandler(routeParams, queryParams) {
         const priceMinVal = document.getElementById("price-min-filter").value;
         const priceMaxVal = document.getElementById("price-max-filter").value;
         const searchVal = document.getElementById("search-input").value;
+        const sortVal = sortFilter ? sortFilter.value : "";
 
         if (typeFilterVal) params.append("TipoProductoId", typeFilterVal);
         if (priceMinVal) params.append("PrecioMin", priceMinVal);
         if (priceMaxVal) params.append("PrecioMax", priceMaxVal);
         if (searchVal && searchVal.length >= 2)
             params.append("search", searchVal);
+        if (sortVal) params.append("ordenarPor", sortVal);
 
         return params;
     }
@@ -124,11 +129,43 @@ async function candyViewHandler(routeParams, queryParams) {
             );
         }
 
+        // Apply sorting
+        const ordenarPor = queryParams.get("ordenarPor");
+        if (ordenarPor) {
+            switch (ordenarPor) {
+                case "precio_asc":
+                    filtered.sort((a, b) => (a.precio || 0) - (b.precio || 0));
+                    break;
+                case "precio_desc":
+                    filtered.sort((a, b) => (b.precio || 0) - (a.precio || 0));
+                    break;
+                case "nombre_asc":
+                    filtered.sort((a, b) => {
+                        const nombreA = (a.nombre || "").toLowerCase();
+                        const nombreB = (b.nombre || "").toLowerCase();
+                        return nombreA.localeCompare(nombreB);
+                    });
+                    break;
+                case "nombre_desc":
+                    filtered.sort((a, b) => {
+                        const nombreA = (a.nombre || "").toLowerCase();
+                        const nombreB = (b.nombre || "").toLowerCase();
+                        return nombreB.localeCompare(nombreA);
+                    });
+                    break;
+            }
+        }
+
         return filtered;
     }
 
     // Set up filter event listeners
     productTypeFilter.addEventListener("change", applyFilters);
+
+    // Sort filter listener
+    if (sortFilter) {
+        sortFilter.addEventListener("change", applyFilters);
+    }
 
     // Debounce price inputs
     const priceMinEl = document.getElementById("price-min-filter");
