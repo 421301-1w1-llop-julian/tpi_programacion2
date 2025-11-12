@@ -14,6 +14,11 @@ const auth = {
         return userStr ? JSON.parse(userStr) : null;
     },
 
+    getUserId() {
+        const user = this.getUser();
+        return user ? user.idUsuario || user.id : null;
+    },
+
     setUser(user, token) {
         localStorage.setItem('user', JSON.stringify(user));
         localStorage.setItem('token', token);

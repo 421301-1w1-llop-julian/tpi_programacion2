@@ -96,6 +96,15 @@ function formatDateTime(dateTime) {
     return d.toLocaleString('es-AR');
 }
 
+// Format time (HH:mm)
+function formatTime(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
+}
+
 // Format currency
 function formatCurrency(amount) {
     return new Intl.NumberFormat('es-AR', {

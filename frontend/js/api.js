@@ -149,6 +149,22 @@ const api = {
         return await response.json();
     },
 
+    // Purchases
+    async createPurchase(data) {
+        const response = await fetch(`${API_BASE_URL}/Compras`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify(data),
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(
+                error.error || error.message || "Error al procesar la compra"
+            );
+        }
+        return await response.json();
+    },
+
     // Dashboard - Analytics
     async getAnalytics(filters = {}) {
         const params = new URLSearchParams(filters);

@@ -12,6 +12,16 @@ document.addEventListener("DOMContentLoaded", () => {
         "movie-detail.html",
         movieDetailViewHandler
     );
+    router.register(
+        "/pelicula/:id/compra_entradas/butacas",
+        "movie-seats.html",
+        movieSeatsViewHandler
+    );
+    router.register(
+        "/pelicula/:id/compra_entradas/candy",
+        "movie-candy.html",
+        movieCandyViewHandler
+    );
     router.register("/candy", "candy.html", candyViewHandler);
     router.register("/candy/:id", "candy-detail.html", candyDetailViewHandler);
     router.register("/comprar", "purchase.html", purchaseViewHandler);
