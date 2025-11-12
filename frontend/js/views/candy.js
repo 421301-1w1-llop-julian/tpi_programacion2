@@ -106,6 +106,7 @@ async function candyViewHandler(routeParams, queryParams) {
                 (product) => product.idTipoProducto === parseInt(tipoProductoId)
             );
         }
+        //hola
 
         // Filter by minimum price
         const precioMin = queryParams.get("PrecioMin");
