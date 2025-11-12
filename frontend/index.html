@@ -1,22 +1,116 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Web</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body class="index">
-    <div class="index-container">
-    <h1>Welcome to the integrative programming practical work 2</h1>
-    <h3>This project has the following objectives:</h3>
-    <ul>
-        <li>To integrate the knowledge and practical skills acquired in the course units.</li>
-        <li>To reinforce the skills necessary to solve a problematic situation using object-oriented programming with C#, incorporating advanced OOP and client-server application concepts through the development of a Web API.</li>
-        <li>To model a data abstraction for the proposed domain by applying design patterns and good programming practices.</li>
-        <li>To design and integrate a web interface using HTML, CSS, and JavaScript development technologies that consumes a service layer published as a Web API.</li>
-    </ul>
-    <a href="login.html" class="index-container">Sign In</a>
-    </div>
-</body>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>CineMark - Tu Cine Favorito</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            "cine-red": "#DC2626",
+                            "cine-dark": "#0A0A0A",
+                            "cine-gray": "#1A1A1A",
+                        },
+                    },
+                },
+            };
+        </script>
+        <style>
+            [v-cloak] {
+                display: none;
+            }
+            .carousel-item {
+                display: none;
+            }
+            .carousel-item.active {
+                display: block;
+            }
+            .carousel-item {
+                min-width: 100%;
+            }
+            #movie-modal {
+                backdrop-filter: blur(4px);
+            }
+        </style>
+    </head>
+    <body class="bg-cine-dark text-white min-h-screen">
+        <!-- Navigation Bar -->
+        <nav
+            id="navbar"
+            class="bg-cine-gray border-b border-gray-800 sticky top-0 z-50"
+        >
+            <div class="container mx-auto px-4">
+                <div class="flex items-center justify-between h-16">
+                    <div class="flex items-center space-x-8">
+                        <a
+                            href="#/"
+                            class="text-2xl font-bold text-white hover:text-cine-red transition"
+                            >CINETUP</a
+                        >
+                        <div class="hidden md:flex space-x-6">
+                            <a
+                                href="#/"
+                                class="nav-link text-white hover:text-cine-red transition"
+                                >INICIO</a
+                            >
+                            <a
+                                href="#/peliculas"
+                                class="nav-link text-white hover:text-cine-red transition"
+                                >PELÍCULAS</a
+                            >
+                            <a
+                                href="#/candy"
+                                class="nav-link text-white hover:text-cine-red transition"
+                                >CANDY</a
+                            >
+                            <a
+                                href="#/comprar"
+                                class="nav-link text-white hover:text-cine-red transition"
+                                >COMPRAR ENTRADAS</a
+                            >
+                            <a
+                                href="#/dashboard"
+                                id="dashboard-link"
+                                class="nav-link text-white hover:text-cine-red transition hidden"
+                                >DASHBOARD</a
+                            >
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div id="user-menu" class="hidden">
+                            <span id="username-display" class="mr-4"></span>
+                            <button
+                                id="logout-btn"
+                                class="bg-cine-red px-4 py-2 rounded hover:bg-red-700 transition"
+                            >
+                                Cerrar Sesión
+                            </button>
+                        </div>
+                        <div id="auth-buttons">
+                            <a
+                                href="#/login"
+                                class="bg-cine-red px-4 py-2 rounded hover:bg-red-700 transition"
+                                >Iniciar Sesión</a
+                            >
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main id="app" class="min-h-screen">
+            <!-- Content will be loaded here by router -->
+        </main>
+
+        <!-- Scripts -->
+        <script src="js/api.js"></script>
+        <script src="js/auth.js"></script>
+        <script src="js/router.js"></script>
+        <script src="js/utils.js"></script>
+        <script src="js/app.js"></script>
+    </body>
 </html>

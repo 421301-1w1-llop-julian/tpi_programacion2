@@ -1,0 +1,45 @@
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-4xl font-bold mb-8">Películas en Cartelera</h1>
+    
+    <div id="api-error-message" class="hidden bg-yellow-900 bg-opacity-50 border border-yellow-500 rounded-lg p-6 mb-6">
+        <p class="text-yellow-200">
+            ⚠️ No se pudo conectar con la API. Asegúrate de que el backend esté corriendo en el puerto correcto y que CORS esté configurado.
+        </p>
+        <p class="text-yellow-300 text-sm mt-2">
+            Revisa la consola del navegador (F12) para más detalles. La URL de la API está configurada en: <code class="bg-gray-800 px-2 py-1 rounded">https://localhost:7285/api</code>
+        </p>
+    </div>
+    
+    <!-- Search and Filters -->
+    <div class="bg-cine-gray rounded-lg p-6 mb-8">
+        <div class="mb-4">
+            <input type="text" id="search-input" placeholder="Buscar por nombre de película, actor o director..."
+                class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-cine-red">
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <select id="genre-filter" class="px-4 py-2 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-cine-red">
+                <option value="">Todos los géneros</option>
+            </select>
+            <select id="language-filter" class="px-4 py-2 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-cine-red">
+                <option value="">Todos los idiomas</option>
+            </select>
+            <select id="classification-filter" class="px-4 py-2 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-cine-red">
+                <option value="">Todas las clasificaciones</option>
+            </select>
+            <select id="audience-filter" class="px-4 py-2 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-cine-red">
+                <option value="">Todos los públicos</option>
+            </select>
+            <input type="number" id="duration-filter" placeholder="Duración mínima (min)"
+                class="px-4 py-2 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-cine-red">
+        </div>
+    </div>
+
+    <!-- Movies Grid -->
+    <div id="movies-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div class="col-span-full text-center py-12 text-gray-400">
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cine-red mx-auto"></div>
+            <p class="mt-4">Cargando películas...</p>
+        </div>
+    </div>
+</div>
+

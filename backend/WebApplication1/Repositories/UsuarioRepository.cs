@@ -61,6 +61,9 @@ namespace Cine2025.Repositories
 
                 // 4. CREAR LA ENTIDAD USUARIO
                 var hashedPassword = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+
+                int idTipoUsuario = dto.IdTipoUsuario == 0 ? 2 : dto.IdTipoUsuario;
+
                 var user = new Usuario
                 {
                     Username = dto.Username,
@@ -68,7 +71,7 @@ namespace Cine2025.Repositories
                     Nombre = dto.Nombre,
                     Apellido = dto.Apellido,
                     Email = dto.Email,
-                    IdTipoUsuario = dto.IdTipoUsuario,
+                    IdTipoUsuario = idTipoUsuario,
                     Activo = true,
                     // ASOCIACIÓN CLAVE: Usamos el IdCliente que acabamos de generar
                     IdCliente = cliente.IdCliente

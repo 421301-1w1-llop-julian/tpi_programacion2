@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using WebApplication1.DTOs.Pelicula;
 using WebApplication1.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -8,7 +7,6 @@ namespace WebApplication1.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Policy = "AdminOnly")]
     public class PeliculaController : ControllerBase
     {
         private readonly IPeliculaService _service;
@@ -18,10 +16,12 @@ namespace WebApplication1.Controllers
             _service = service;
         }
 
+        // ---- PÚBLICOS ----
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] PeliculaFilterDTO? filters)
         {
-            var peliculas = await _service.GetAllAsync();
+            Console.WriteLine(filters);
+            var peliculas = await _service.GetAllAsync(filters);
             return Ok(peliculas);
         }
 
@@ -33,6 +33,8 @@ namespace WebApplication1.Controllers
             return Ok(pelicula);
         }
 
+        // ---- SOLO ADMIN ----
+        [Authorize(Policy = "AdminOnly")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] PeliculaCreateDTO dto)
         {
@@ -40,6 +42,7 @@ namespace WebApplication1.Controllers
             return CreatedAtAction(nameof(GetById), new { id = nueva.IdPelicula }, nueva);
         }
 
+        [Authorize(Policy = "AdminOnly")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] PeliculaUpdateDTO dto)
         {
@@ -49,6 +52,7 @@ namespace WebApplication1.Controllers
             return Ok(actualizada);
         }
 
+        [Authorize(Policy = "AdminOnly")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

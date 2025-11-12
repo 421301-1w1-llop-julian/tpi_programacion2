@@ -13,6 +13,9 @@ public partial class Producto
 
     public string Descripcion { get; set; }
 
+    // Nueva columna para almacenar la ruta/URL de la imagen (varchar(300))
+    public string Imagen { get; set; }
+
     public decimal Precio { get; set; }
 
     public int IdTipoProducto { get; set; }

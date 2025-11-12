@@ -14,18 +14,69 @@ namespace WebApplication1.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<PeliculaListDTO>> GetAllAsync()
+        public async Task<IEnumerable<PeliculaListDTO>> GetAllAsync(PeliculaFilterDTO? filters = null)
         {
-            return await _context.Peliculas
+            var query = _context.Peliculas
                 .Include(p => p.IdClasificacionNavigation)
                 .Include(p => p.IdPaisNavigation)
+                .Include(p => p.PeliculasGeneros)
+                .Include(p => p.PeliculasIdiomas)
+                .AsQueryable();
+
+            if (filters != null)
+            {
+                if (!string.IsNullOrWhiteSpace(filters.Search))
+                {
+                    var search = filters.Search.Trim();
+                    query = query.Where(p => p.Nombre.Contains(search) || p.Descripcion.Contains(search));
+                }
+
+                if (filters.GeneroId.HasValue)
+                {
+                    var genId = filters.GeneroId.Value;
+                    query = query.Where(p => p.PeliculasGeneros.Any(pg => pg.IdGenero == genId));
+                }
+
+                if (filters.IdiomaId.HasValue)
+                {
+                    var idiomaId = filters.IdiomaId.Value;
+                    query = query.Where(p => p.PeliculasIdiomas.Any(pi => pi.IdIdioma == idiomaId));
+                }
+
+                if (filters.ClasificacionId.HasValue)
+                {
+                    var clasId = filters.ClasificacionId.Value;
+                    query = query.Where(p => p.IdClasificacion == clasId);
+                }
+
+                if (filters.TipoPublicoId.HasValue)
+                {
+                    var tpId = filters.TipoPublicoId.Value;
+                    query = query.Where(p => p.IdTipoPublico == tpId);
+                }
+
+                if (filters.MinDuration.HasValue)
+                {
+                    var minDur = filters.MinDuration.Value;
+                    query = query.Where(p => p.Duracion >= minDur);
+                }
+            }
+
+            return await query
                 .Select(p => new PeliculaListDTO
                 {
                     IdPelicula = p.IdPelicula,
                     Nombre = p.Nombre,
+                    Descripcion = p.Descripcion,
+                    Imagen = p.Imagen,
+                    IdClasificacion = p.IdClasificacion,
                     Clasificacion = p.IdClasificacionNavigation.Nombre,
+                    IdTipoPublico = p.IdTipoPublico,
+                    Duracion = p.Duracion,
                     Pais = p.IdPaisNavigation.Nombre,
-                    FechaEstreno = p.FechaEstreno
+                    FechaEstreno = p.FechaEstreno,
+                    GeneroIds = p.PeliculasGeneros.Select(pg => pg.IdGenero).ToList(),
+                    IdiomaIds = p.PeliculasIdiomas.Select(pi => pi.IdIdioma).ToList()
                 })
                 .ToListAsync();
         }
@@ -50,6 +101,7 @@ namespace WebApplication1.Repositories
                 IdPelicula = pelicula.IdPelicula,
                 Nombre = pelicula.Nombre,
                 Descripcion = pelicula.Descripcion,
+                Imagen = pelicula.Imagen,
                 Duracion = pelicula.Duracion,
                 FechaEstreno = pelicula.FechaEstreno,
                 IdClasificacion = pelicula.IdClasificacion,
@@ -78,6 +130,7 @@ namespace WebApplication1.Repositories
             {
                 Nombre = dto.Nombre,
                 Descripcion = dto.Descripcion,
+                Imagen = dto.Imagen,
                 Duracion = dto.Duracion,
                 FechaEstreno = dto.FechaEstreno,
                 IdClasificacion = dto.IdClasificacion,
