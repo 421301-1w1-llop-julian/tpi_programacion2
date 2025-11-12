@@ -11,9 +11,9 @@ const router = {
             const base = pathname.endsWith("/")
                 ? pathname
                 : pathname.substring(0, pathname.lastIndexOf("/") + 1);
-            return base + "views/";
+            return base + "pages/";
         } catch (e) {
-            return "./views/";
+            return "./pages/";
         }
     })(),
 

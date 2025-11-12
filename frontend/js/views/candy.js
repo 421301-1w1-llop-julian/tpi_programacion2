@@ -17,9 +17,11 @@ async function candyViewHandler(routeParams, queryParams) {
         return;
     }
 
+    console.log(products);
+
     // Populate product type filter
     const productTypeFilter = document.getElementById("product-type-filter");
-    
+
     productTypes.forEach((type) => {
         const option = document.createElement("option");
         option.value = type.idTipoProducto;
@@ -35,8 +37,10 @@ async function candyViewHandler(routeParams, queryParams) {
         const qSearch = queryParams.get("search");
 
         if (qType) productTypeFilter.value = qType;
-        if (qPriceMin) document.getElementById("price-min-filter").value = qPriceMin;
-        if (qPriceMax) document.getElementById("price-max-filter").value = qPriceMax;
+        if (qPriceMin)
+            document.getElementById("price-min-filter").value = qPriceMin;
+        if (qPriceMax)
+            document.getElementById("price-max-filter").value = qPriceMax;
         if (qSearch) document.getElementById("search-input").value = qSearch;
     }
 
@@ -65,7 +69,8 @@ async function candyViewHandler(routeParams, queryParams) {
         if (typeFilterVal) params.append("TipoProductoId", typeFilterVal);
         if (priceMinVal) params.append("PrecioMin", priceMinVal);
         if (priceMaxVal) params.append("PrecioMax", priceMaxVal);
-        if (searchVal && searchVal.length >= 2) params.append("search", searchVal);
+        if (searchVal && searchVal.length >= 2)
+            params.append("search", searchVal);
 
         return params;
     }
@@ -158,9 +163,14 @@ function renderProductsGrid(products) {
             <div class="bg-cine-gray rounded-lg overflow-hidden hover:transform hover:scale-105 transition">
                 <div class="w-full h-48 bg-gray-700 flex items-center justify-center cursor-pointer"
                      onclick="router.navigate('/candy/${product.idProducto}')">
-                    ${product.imagen 
-                        ? `<img src="${product.imagen}" alt="${sanitizeInput(product.nombre)}" class="w-full h-full object-cover"/>`
-                        : `<span class="text-gray-400">Imagen</span>`
+                    ${
+                        product.imagen
+                            ? `<img src="${
+                                  product.imagen
+                              }" alt="${sanitizeInput(
+                                  product.nombre
+                              )}" class="w-full h-full object-cover"/>`
+                            : `<span class="text-gray-400">Imagen</span>`
                     }
                 </div>
                 <div class="p-4">
