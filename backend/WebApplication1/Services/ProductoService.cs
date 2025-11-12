@@ -22,8 +22,9 @@ namespace WebApplication1.Services
             {
                 Nombre = dto.Nombre,
                 Descripcion = dto.Descripcion,
-                 Precio = dto.Precio,
-                IdTipoProducto = dto.IdTipoProducto
+                Precio = dto.Precio,
+                IdTipoProducto = dto.IdTipoProducto,
+                Imagen = dto.Imagen,
             };
 
             var created = await _repository.AddAsync(entity);
@@ -34,8 +35,8 @@ namespace WebApplication1.Services
                 Nombre = created.Nombre,
                 Descripcion = created.Descripcion,
                 Precio = created.Precio,
-                IdTipoProducto = created.IdTipoProducto
-                
+                IdTipoProducto = created.IdTipoProducto,
+                Imagen = dto.Imagen,
             };
         }
 
@@ -57,7 +58,8 @@ namespace WebApplication1.Services
                 Nombre = t.Nombre,
                 Descripcion = t.Descripcion,
                 Precio = t.Precio,
-                IdTipoProducto = t.IdTipoProducto
+                IdTipoProducto = t.IdTipoProducto,
+                Imagen = t.Imagen
             });
         }
 
@@ -72,8 +74,9 @@ namespace WebApplication1.Services
                 IdProducto = p.IdProducto,
                 Nombre = p.Nombre,
                 Descripcion = p.Descripcion,
-                 Precio = p.Precio,
-                IdTipoProducto = p.IdTipoProducto
+                Precio = p.Precio,
+                IdTipoProducto = p.IdTipoProducto,
+                Imagen = p.Imagen
             };
         }
 
@@ -87,8 +90,9 @@ namespace WebApplication1.Services
                 IdProducto = id,
                 Nombre = dto.Nombre,
                 Descripcion = dto.Descripcion,
-                 Precio = dto.Precio,
-                IdTipoProducto = dto.IdTipoProducto
+                Precio = dto.Precio,
+                IdTipoProducto = dto.IdTipoProducto,
+                Imagen = dto.Imagen
             };
 
             await _repository.UpdateAsync(entity);

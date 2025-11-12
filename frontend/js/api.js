@@ -311,7 +311,7 @@ const api = {
     },
 
     async getProductTypes() {
-        const response = await fetch(`${API_BASE_URL}/tiposproductos`, {
+        const response = await fetch(`${API_BASE_URL}/TiposProductos`, {
             headers: getHeaders(false),
         });
         if (!response.ok) throw new Error("Error al cargar tipos de producto");

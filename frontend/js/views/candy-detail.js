@@ -9,7 +9,15 @@ async function candyDetailViewHandler(params) {
         content.innerHTML = `
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="w-full h-96 bg-gray-700 rounded flex items-center justify-center">
-                    <span class="text-gray-400">Imagen del Producto</span>
+                     ${
+                         product.imagen
+                             ? `<img src="${
+                                   product.imagen
+                               }" alt="${sanitizeInput(
+                                   product.nombre
+                               )}" class="w-full h-full object-cover"/>`
+                             : `<span class="text-gray-400">Imagen</span>`
+                     }
                 </div>
                 <div>
                     <h1 class="text-4xl font-bold mb-4">${sanitizeInput(
@@ -36,4 +44,3 @@ async function candyDetailViewHandler(params) {
         `;
     }
 }
-

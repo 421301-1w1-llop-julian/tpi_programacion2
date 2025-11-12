@@ -18,6 +18,7 @@ async function candyViewHandler(routeParams, queryParams) {
     }
 
     console.log(products);
+    console.log(productTypes);
 
     // Populate product type filter
     const productTypeFilter = document.getElementById("product-type-filter");
@@ -25,7 +26,7 @@ async function candyViewHandler(routeParams, queryParams) {
     productTypes.forEach((type) => {
         const option = document.createElement("option");
         option.value = type.idTipoProducto;
-        option.textContent = sanitizeInput(type.nombre);
+        option.textContent = sanitizeInput(type.tipoProducto);
         productTypeFilter.appendChild(option);
     });
 
