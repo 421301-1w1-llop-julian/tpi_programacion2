@@ -13,38 +13,114 @@ async function dashboardViewHandler() {
     updateDashboardNavLinks("/dashboard");
 
     try {
-        const analytics = await api.getAnalytics();
+        const [analytics, compras] = await Promise.all([
+            api.getAnalytics(),
+            api.getCompras()
+        ]);
+
+        // Calculate initial metrics
+        const totalVendido = analytics.ingresosTotales || 0;
+        const funcionesVendidas = analytics.totalFunciones || 0;
+        const entradasVendidas = compras.reduce((sum, c) => sum + (c.cantidadEntradas || 1), 0);
+        const promedioPorFuncion = funcionesVendidas > 0 ? totalVendido / funcionesVendidas : 0;
+
+        // Update analytics cards
         const cardsContainer = document.getElementById("analytics-cards");
         if (cardsContainer) {
             cardsContainer.innerHTML = `
                 <div class="bg-cine-gray rounded-lg p-6">
                     <h3 class="text-gray-400 mb-2">Total Vendido</h3>
-                    <p class="text-3xl font-bold">${formatCurrency(
-                        analytics.totalVendido || 0
-                    )}</p>
+                    <p class="text-3xl font-bold">${formatCurrency(totalVendido)}</p>
                 </div>
                 <div class="bg-cine-gray rounded-lg p-6">
                     <h3 class="text-gray-400 mb-2">Funciones Vendidas</h3>
-                    <p class="text-3xl font-bold">${
-                        analytics.funcionesVendidas || 0
-                    }</p>
+                    <p class="text-3xl font-bold">${funcionesVendidas}</p>
                 </div>
                 <div class="bg-cine-gray rounded-lg p-6">
                     <h3 class="text-gray-400 mb-2">Entradas Vendidas</h3>
-                    <p class="text-3xl font-bold">${
-                        analytics.entradasVendidas || 0
-                    }</p>
+                    <p class="text-3xl font-bold">${entradasVendidas}</p>
                 </div>
                 <div class="bg-cine-gray rounded-lg p-6">
                     <h3 class="text-gray-400 mb-2">Promedio por Función</h3>
-                    <p class="text-3xl font-bold">${formatCurrency(
-                        analytics.promedioPorFuncion || 0
-                    )}</p>
+                    <p class="text-3xl font-bold">${formatCurrency(promedioPorFuncion)}</p>
                 </div>
             `;
         }
+
+        // Display sales list
+        if (typeof displaySalesList === 'function') {
+            displaySalesList(compras);
+        } else {
+            // Fallback if function is not yet loaded
+            const salesListContainer = document.getElementById("sales-list-container");
+            if (salesListContainer) {
+                if (!compras || compras.length === 0) {
+                    salesListContainer.innerHTML = '<p class="text-gray-400 text-center py-8">No hay compras disponibles</p>';
+                } else {
+                    const sortedCompras = [...compras].sort((a, b) => 
+                        new Date(b.fechaCompra) - new Date(a.fechaCompra)
+                    );
+                    salesListContainer.innerHTML = `
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-gray-700">
+                                        <th class="text-left py-3 px-4 font-semibold">ID</th>
+                                        <th class="text-left py-3 px-4 font-semibold">Cliente</th>
+                                        <th class="text-left py-3 px-4 font-semibold">Película</th>
+                                        <th class="text-left py-3 px-4 font-semibold">Fecha</th>
+                                        <th class="text-left py-3 px-4 font-semibold">Forma de Pago</th>
+                                        <th class="text-right py-3 px-4 font-semibold">Total</th>
+                                        <th class="text-left py-3 px-4 font-semibold">Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${sortedCompras.map(compra => {
+                                        const fecha = new Date(compra.fechaCompra);
+                                        const fechaFormateada = fecha.toLocaleDateString('es-AR', {
+                                            year: 'numeric',
+                                            month: '2-digit',
+                                            day: '2-digit',
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                        });
+                                        return `
+                                        <tr class="border-b border-gray-800 hover:bg-gray-800 transition">
+                                            <td class="py-3 px-4">#${compra.idCompra}</td>
+                                            <td class="py-3 px-4">${sanitizeInput(compra.nombreCliente || "N/A")}</td>
+                                            <td class="py-3 px-4">${sanitizeInput(compra.pelicula || "N/A")}</td>
+                                            <td class="py-3 px-4">${fechaFormateada}</td>
+                                            <td class="py-3 px-4">${sanitizeInput(compra.formaPago || "N/A")}</td>
+                                            <td class="text-right py-3 px-4 font-semibold">${formatCurrency(compra.total || 0)}</td>
+                                            <td class="py-3 px-4">
+                                                <span class="px-2 py-1 rounded text-xs ${
+                                                    compra.estado === "Completada" 
+                                                        ? "bg-green-900 text-green-300" 
+                                                        : "bg-gray-700 text-gray-300"
+                                                }">
+                                                    ${sanitizeInput(compra.estado || "N/A")}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    `;
+                                    }).join("")}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                }
+            }
+        }
     } catch (error) {
         console.error("Error loading analytics:", error);
+        const salesListContainer = document.getElementById("sales-list-container");
+        if (salesListContainer) {
+            salesListContainer.innerHTML = `
+                <div class="bg-red-900 bg-opacity-50 border border-red-500 rounded p-4">
+                    <p>Error al cargar las compras: ${error.message}</p>
+                </div>
+            `;
+        }
     }
 }
 

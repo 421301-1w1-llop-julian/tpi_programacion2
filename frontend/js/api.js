@@ -168,14 +168,37 @@ const api = {
 
     // Dashboard - Analytics
     async getAnalytics(filters = {}) {
-        const params = new URLSearchParams(filters);
+        const params = new URLSearchParams();
+        if (filters.fechaDesde) params.append("fechaDesde", filters.fechaDesde);
+        if (filters.fechaHasta) params.append("fechaHasta", filters.fechaHasta);
+        if (filters.idPelicula) params.append("idPelicula", filters.idPelicula);
+        if (filters.idCliente) params.append("idCliente", filters.idCliente);
+        if (filters.idSala) params.append("idSala", filters.idSala);
+        
         const response = await fetch(
-            `${API_BASE_URL}/dashboard/analytics?${params}`,
+            `${API_BASE_URL}/Dashboard?${params}`,
             {
                 headers: getHeaders(),
             }
         );
         if (!response.ok) throw new Error("Error al cargar analíticas");
+        return await response.json();
+    },
+
+    async getCompras(filters = {}) {
+        const params = new URLSearchParams();
+        if (filters.fechaDesde) params.append("fechaDesde", filters.fechaDesde);
+        if (filters.fechaHasta) params.append("fechaHasta", filters.fechaHasta);
+        if (filters.idPelicula) params.append("idPelicula", filters.idPelicula);
+        if (filters.idCliente) params.append("idCliente", filters.idCliente);
+        
+        const response = await fetch(
+            `${API_BASE_URL}/Dashboard/compras?${params}`,
+            {
+                headers: getHeaders(),
+            }
+        );
+        if (!response.ok) throw new Error("Error al cargar compras");
         return await response.json();
     },
 
