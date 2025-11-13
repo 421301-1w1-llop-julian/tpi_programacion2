@@ -14,6 +14,7 @@ async function movieSeatsViewHandler(params, queryParams) {
         router.navigate(`/peliculas/${movieId}`);
         return;
     }
+    //
 
     try {
         const [movie, funcion, seats] = await Promise.all([
@@ -30,7 +31,7 @@ async function movieSeatsViewHandler(params, queryParams) {
 
         // Render summary
         renderSummary(movie, funcion);
-        
+
         // Initialize price display
         updateTotalPrice();
 
@@ -93,7 +94,9 @@ async function movieSeatsViewHandler(params, queryParams) {
         continueBtn.addEventListener("click", () => {
             if (selectedSeats.length === ticketQuantity && ticketQuantity > 0) {
                 router.navigate(
-                    `/pelicula/${movieId}/compra_entradas/candy?funcion=${funcionId}&butacas=${selectedSeats.join(",")}&cantidad=${ticketQuantity}`
+                    `/pelicula/${movieId}/compra_entradas/candy?funcion=${funcionId}&butacas=${selectedSeats.join(
+                        ","
+                    )}&cantidad=${ticketQuantity}`
                 );
             }
         });
@@ -116,7 +119,7 @@ function renderSummary(movie, funcion) {
     hoy.setHours(0, 0, 0, 0);
     const fechaHoraOnly = new Date(fechaHora);
     fechaHoraOnly.setHours(0, 0, 0, 0);
-    
+
     let fecha;
     if (fechaHoraOnly.getTime() === hoy.getTime()) {
         fecha = "Hoy";
@@ -134,14 +137,20 @@ function renderSummary(movie, funcion) {
 
     summaryContent.innerHTML = `
         <div class="mb-4">
-            <img src="${movie.imagen}" alt="${sanitizeInput(movie.nombre)}" class="w-full h-48 object-cover rounded mb-3"/>
-            <h3 class="font-bold text-lg mb-2">${sanitizeInput(movie.nombre)}</h3>
+            <img src="${movie.imagen}" alt="${sanitizeInput(
+        movie.nombre
+    )}" class="w-full h-48 object-cover rounded mb-3"/>
+            <h3 class="font-bold text-lg mb-2">${sanitizeInput(
+                movie.nombre
+            )}</h3>
             <p class="text-sm text-gray-400 mb-4">2D · Castellano</p>
         </div>
         <div class="space-y-3 text-sm">
             <div>
                 <span class="text-gray-400">Cine, día y horario:</span>
-                <p class="font-semibold">${funcion.nombreSala || "Sala " + funcion.idSala}</p>
+                <p class="font-semibold">${
+                    funcion.nombreSala || "Sala " + funcion.idSala
+                }</p>
                 <p class="text-gray-300">${fecha} · ${hora}</p>
             </div>
             <div>
@@ -150,12 +159,16 @@ function renderSummary(movie, funcion) {
             </div>
             <div>
                 <span class="text-gray-400">Entradas:</span>
-                <p id="tickets-display" class="font-semibold">${ticketQuantity} · ${formatCurrency(total)}</p>
+                <p id="tickets-display" class="font-semibold">${ticketQuantity} · ${formatCurrency(
+        total
+    )}</p>
             </div>
             <div class="pt-4 border-t border-gray-700">
                 <div class="flex justify-between items-center">
                     <span class="text-lg font-bold">Total:</span>
-                    <span id="summary-total" class="text-xl font-bold text-cine-red">${formatCurrency(total)}</span>
+                    <span id="summary-total" class="text-xl font-bold text-cine-red">${formatCurrency(
+                        total
+                    )}</span>
                 </div>
             </div>
         </div>
@@ -175,9 +188,13 @@ function renderSeats(seats) {
         const row = butaca.fila || seat.fila || "A";
         const idButaca = butaca.idButaca || seat.idButaca;
         const numeroButaca = butaca.numeroButaca || seat.numeroButaca;
-        const idEstadoButaca = seat.idEstadoButaca || (seat.idEstadoButacaNavigation ? seat.idEstadoButacaNavigation.idEstadoButaca : 1);
+        const idEstadoButaca =
+            seat.idEstadoButaca ||
+            (seat.idEstadoButacaNavigation
+                ? seat.idEstadoButacaNavigation.idEstadoButaca
+                : 1);
         const idTipoButaca = butaca.idTipoButaca || seat.idTipoButaca;
-        
+
         if (!seatsByRow[row]) {
             seatsByRow[row] = [];
         }
@@ -219,7 +236,8 @@ function renderSeats(seats) {
                                     let seatContent = seat.numeroButaca;
 
                                     if (isSelected) {
-                                        seatClass += " bg-cine-red border-2 border-red-600 text-white";
+                                        seatClass +=
+                                            " bg-cine-red border-2 border-red-600 text-white";
                                     } else if (isOccupied) {
                                         seatClass +=
                                             " bg-gray-800 border border-gray-700 text-gray-600 cursor-not-allowed";
@@ -237,9 +255,13 @@ function renderSeats(seats) {
                                             class="${seatClass}"
                                             data-seat-id="${seat.idButaca}"
                                             data-seat-row="${row}"
-                                            data-seat-number="${seat.numeroButaca}"
+                                            data-seat-number="${
+                                                seat.numeroButaca
+                                            }"
                                             ${isOccupied ? "disabled" : ""}
-                                            onclick="toggleSeat(${seat.idButaca}, '${row}', ${seat.numeroButaca})"
+                                            onclick="toggleSeat(${
+                                                seat.idButaca
+                                            }, '${row}', ${seat.numeroButaca})"
                                         >
                                             ${seatContent}
                                         </button>
@@ -327,7 +349,9 @@ function updateTotalPrice() {
         summaryTotalEl.textContent = formatCurrency(total);
     }
     if (ticketsDisplayEl) {
-        ticketsDisplayEl.textContent = `${ticketQuantity} · ${formatCurrency(total)}`;
+        ticketsDisplayEl.textContent = `${ticketQuantity} · ${formatCurrency(
+            total
+        )}`;
     }
 
     const unitPriceEl = document.getElementById("unit-price");
@@ -384,4 +408,3 @@ function updateContinueButton() {
         );
     }
 }
-
