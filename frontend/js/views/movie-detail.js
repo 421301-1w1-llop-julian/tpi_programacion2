@@ -14,83 +14,89 @@ async function movieDetailViewHandler(params) {
         const dateOptions = generateDateOptions();
 
         content.innerHTML = `
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                <div class="w-full h-auto bg-gray-700 rounded flex items-center justify-center">
-                    <img src=${movie.imagen} alt="${sanitizeInput(
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Left column: movie information -->
+                <div class="space-y-6">
+                    <div>
+                        <h1 class="text-4xl font-bold mb-3">${sanitizeInput(
+                            movie.nombre || "Sin título"
+                        )}</h1>
+                        <div class="w-full bg-gray-700 rounded overflow-hidden">
+                            <img src=${movie.imagen} alt="${sanitizeInput(
             movie.nombre
-        )}" class="w-full object-cover rounded"/>
-                </div>
-                <div>
-                    <h1 class="text-4xl font-bold mb-4">${sanitizeInput(
-                        movie.nombre || "Sin título"
-                    )}</h1>
-                    <p class="text-gray-300 mb-6">${sanitizeInput(
-                        movie.descripcion || "Sin descripción"
-                    )}</p>
-                    <div class="space-y-2 mb-6">
-                        <div><span class="font-semibold">Duración:</span> ${formatDuration(
-                            movie.duracion || 0
-                        )}</div>
-                        <div><span class="font-semibold">Fecha de Estreno:</span> ${formatDate(
-                            movie.fechaEstreno
-                        )}</div>
-                        <div><span class="font-semibold">Clasificación:</span> ${
-                            movie.idClasificacionNavigation?.nombre || "N/A"
-                        }</div>
-                        <div><span class="font-semibold">Tipo de Público:</span> ${
-                            movie.idTipoPublicoNavigation?.nombre || "N/A"
-                        }</div>
+        )}" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <p class="text-gray-300">${sanitizeInput(
+                            movie.descripcion || "Sin descripción"
+                        )}</p>
+                        <div class="space-y-2 text-sm">
+                            <div><span class="font-semibold text-white">Duración:</span> ${formatDuration(
+                                movie.duracion || 0
+                            )}</div>
+                            <div><span class="font-semibold text-white">Fecha de Estreno:</span> ${formatDate(
+                                movie.fechaEstreno
+                            )}</div>
+                            <div><span class="font-semibold text-white">Clasificación:</span> ${
+                                movie.idClasificacionNavigation?.nombre || "N/A"
+                            }</div>
+                            <div><span class="font-semibold text-white">Tipo de Público:</span> ${
+                                movie.idTipoPublicoNavigation?.nombre || "N/A"
+                            }</div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Date Selector and Filters -->
-            <div class="bg-gray-800 rounded-lg p-6 mb-6">
-                <div class="mb-4">
-                    <label class="block text-sm font-semibold mb-2">Seleccionar Día</label>
-                    <div id="date-selector" class="flex gap-2 overflow-x-auto pb-2">
-                        ${dateOptions
-                            .map(
-                                (date, index) => `
-                            <button 
-                                type="button"
-                                class="date-option flex-shrink-0 px-4 py-2 rounded ${
-                                    index === 0
-                                        ? "bg-cine-red text-white"
-                                        : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                                }"
-                                data-date="${date.value}"
-                            >
-                                ${date.label}
-                            </button>
-                        `
-                            )
-                            .join("")}
+                <!-- Right column: scheduling -->
+                <div class="space-y-6">
+                    <div class="bg-gray-800 rounded-lg p-6">
+                        <div class="mb-4">
+                            <label class="block text-sm font-semibold mb-2">Seleccionar Día</label>
+                            <div id="date-selector" class="flex gap-2 overflow-x-auto pb-2">
+                                ${dateOptions
+                                    .map(
+                                        (date, index) => `
+                                    <button 
+                                        type="button"
+                                        class="date-option flex-shrink-0 px-4 py-2 rounded ${
+                                            index === 0
+                                                ? "bg-cine-red text-white"
+                                                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                                        }"
+                                        data-date="${date.value}"
+                                    >
+                                        ${date.label}
+                                    </button>
+                                `
+                                    )
+                                    .join("")}
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">Formato</label>
+                                <select id="format-filter" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded focus:outline-none focus:border-cine-red">
+                                    <option value="">Todos los formatos</option>
+                                    <option value="2D">2D</option>
+                                    <option value="3D">3D</option>
+                                    <option value="4D">4D</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">Idioma</label>
+                                <select id="language-filter" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded focus:outline-none focus:border-cine-red">
+                                    <option value="">Todos los idiomas</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-semibold mb-2">Formato</label>
-                        <select id="format-filter" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded focus:outline-none focus:border-cine-red">
-                            <option value="">Todos los formatos</option>
-                            <option value="2D">2D</option>
-                            <option value="3D">3D</option>
-                            <option value="4D">4D</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold mb-2">Idioma</label>
-                        <select id="language-filter" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded focus:outline-none focus:border-cine-red">
-                            <option value="">Todos los idiomas</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Showtimes -->
-            <div id="showtimes-container" class="bg-gray-800 rounded-lg p-6">
-                <h2 class="text-2xl font-bold mb-4">Horarios Disponibles</h2>
-                <div id="showtimes-list"></div>
+                    <div id="showtimes-container" class="bg-gray-800 rounded-lg p-6">
+                        <h2 class="text-2xl font-bold mb-4">Horarios Disponibles</h2>
+                        <div id="showtimes-list"></div>
+                    </div>
+                </div>
             </div>
         `;
 
