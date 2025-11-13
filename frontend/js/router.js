@@ -132,7 +132,7 @@ const router = {
                     // Call handler if provided
                     if (route.handler) {
                         // Esperar un momento para asegurar que el DOM esté listo
-                        await new Promise((resolve) => setTimeout(resolve, 50));
+                        await new Promise((resolve) => setTimeout(resolve, 150));
                         await route.handler(routeParams, queryParams);
                     }
                 } catch (error) {
