@@ -12,21 +12,104 @@ async function dashboardViewHandler() {
     initDashboardMobileMenu();
     updateDashboardNavLinks("/dashboard");
 
-    // Find or create elements using MutationObserver
+    // Find or create elements - simplified approach
     const ensureElementsExist = () => {
         return new Promise((resolve) => {
+            // First, try to find elements directly
             let cardsContainer = document.getElementById("analytics-cards");
             let salesListContainer = document.getElementById("sales-list-container");
             
-            // If already found, return immediately
             if (cardsContainer && salesListContainer) {
                 console.log("Elements found immediately");
                 resolve({ cardsContainer, salesListContainer });
                 return;
             }
             
-            // Use MutationObserver to watch for elements being added
-            const observer = new MutationObserver((mutations) => {
+            // Wait a bit and check again
+            setTimeout(() => {
+                cardsContainer = document.getElementById("analytics-cards");
+                salesListContainer = document.getElementById("sales-list-container");
+                
+                if (cardsContainer && salesListContainer) {
+                    console.log("Elements found after short wait");
+                    resolve({ cardsContainer, salesListContainer });
+                    return;
+                }
+                
+                // If still not found, create them
+                console.warn("Elements not found, creating them...");
+                const dashboardContent = document.getElementById("dashboard-content");
+                console.log("dashboard-content found:", !!dashboardContent);
+                
+                if (!dashboardContent) {
+                    console.error("dashboard-content not found!");
+                    resolve({ cardsContainer: null, salesListContainer: null });
+                    return;
+                }
+                
+                // Create analytics-cards
+                if (!cardsContainer) {
+                    console.log("Creating analytics-cards...");
+                    cardsContainer = document.createElement("div");
+                    cardsContainer.id = "analytics-cards";
+                    cardsContainer.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8";
+                    
+                    // Find filters div and insert after it
+                    const filtersDiv = dashboardContent.querySelector('[id="filter-date-start"]')?.closest('.bg-cine-gray');
+                    console.log("Filters div found:", !!filtersDiv);
+                    
+                    if (filtersDiv && filtersDiv.parentNode) {
+                        // Insert after the filters div
+                        if (filtersDiv.nextSibling) {
+                            filtersDiv.parentNode.insertBefore(cardsContainer, filtersDiv.nextSibling);
+                        } else {
+                            filtersDiv.parentNode.appendChild(cardsContainer);
+                        }
+                        console.log("Inserted analytics-cards after filters");
+                    } else {
+                        // Find the h1 "Analíticas" and insert after it
+                        const h1 = dashboardContent.querySelector("h1");
+                        if (h1) {
+                            if (h1.nextSibling) {
+                                h1.parentNode.insertBefore(cardsContainer, h1.nextSibling);
+                            } else {
+                                h1.parentNode.appendChild(cardsContainer);
+                            }
+                        } else {
+                            dashboardContent.appendChild(cardsContainer);
+                        }
+                        console.log("Appended analytics-cards to dashboard-content");
+                    }
+                }
+                
+                // Create sales-list-container
+                if (!salesListContainer) {
+                    console.log("Creating sales-list-container...");
+                    const salesDiv = document.createElement("div");
+                    salesDiv.className = "bg-cine-gray rounded-lg p-6";
+                    salesDiv.innerHTML = `
+                        <h2 class="text-xl font-bold mb-4">Ventas por Día</h2>
+                        <div id="sales-list-container"></div>
+                    `;
+                    
+                    // Insert after analytics-cards or at the end
+                    if (cardsContainer && cardsContainer.parentNode) {
+                        if (cardsContainer.nextSibling) {
+                            cardsContainer.parentNode.insertBefore(salesDiv, cardsContainer.nextSibling);
+                        } else {
+                            cardsContainer.parentNode.appendChild(salesDiv);
+                        }
+                        console.log("Inserted sales div after analytics-cards");
+                    } else {
+                        dashboardContent.appendChild(salesDiv);
+                        console.log("Appended sales div to dashboard-content");
+                    }
+                    
+                    salesListContainer = salesDiv.querySelector("#sales-list-container");
+                    console.log("sales-list-container found after creation:", !!salesListContainer);
+                }
+                
+                // Final verification
                 if (!cardsContainer) {
                     cardsContainer = document.getElementById("analytics-cards");
                 }
@@ -34,99 +117,9 @@ async function dashboardViewHandler() {
                     salesListContainer = document.getElementById("sales-list-container");
                 }
                 
-                if (cardsContainer && salesListContainer) {
-                    observer.disconnect();
-                    console.log("Elements found via MutationObserver");
-                    resolve({ cardsContainer, salesListContainer });
-                }
-            });
-            
-            // Start observing
-            const app = document.getElementById("app");
-            if (app) {
-                observer.observe(app, {
-                    childList: true,
-                    subtree: true
-                });
-                
-                // Also check periodically as fallback
-                let attempts = 0;
-                const checkInterval = setInterval(() => {
-                    attempts++;
-                    if (!cardsContainer) {
-                        cardsContainer = document.getElementById("analytics-cards");
-                    }
-                    if (!salesListContainer) {
-                        salesListContainer = document.getElementById("sales-list-container");
-                    }
-                    
-                    if (cardsContainer && salesListContainer) {
-                        clearInterval(checkInterval);
-                        observer.disconnect();
-                        console.log("Elements found via interval check");
-                        resolve({ cardsContainer, salesListContainer });
-                    } else if (attempts >= 30) {
-                        clearInterval(checkInterval);
-                        observer.disconnect();
-                        console.warn("Elements not found, creating them...");
-                        
-                        // Create elements as fallback
-                        const dashboardContent = document.getElementById("dashboard-content");
-                        if (dashboardContent) {
-                            if (!cardsContainer) {
-                                cardsContainer = document.createElement("div");
-                                cardsContainer.id = "analytics-cards";
-                                cardsContainer.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8";
-                                
-                                // Find filters div and insert after it
-                                const filtersDiv = dashboardContent.querySelector('[id="filter-date-start"]')?.closest('.bg-cine-gray');
-                                if (filtersDiv && filtersDiv.parentNode) {
-                                    filtersDiv.parentNode.insertBefore(cardsContainer, filtersDiv.nextSibling);
-                                } else {
-                                    dashboardContent.appendChild(cardsContainer);
-                                }
-                            }
-                            
-                            if (!salesListContainer) {
-                                const salesDiv = document.createElement("div");
-                                salesDiv.className = "bg-cine-gray rounded-lg p-6";
-                                salesDiv.innerHTML = `
-                                    <h2 class="text-xl font-bold mb-4">Ventas por Día</h2>
-                                    <div id="sales-list-container"></div>
-                                `;
-                                salesListContainer = salesDiv.querySelector("#sales-list-container");
-                                
-                                if (cardsContainer && cardsContainer.parentNode) {
-                                    cardsContainer.parentNode.insertBefore(salesDiv, cardsContainer.nextSibling);
-                                } else {
-                                    dashboardContent.appendChild(salesDiv);
-                                }
-                            }
-                        }
-                        
-                        resolve({ cardsContainer, salesListContainer });
-                    }
-                }, 100);
-            } else {
-                // App not found, create elements anyway
-                console.warn("App container not found, creating elements in body");
-                cardsContainer = document.createElement("div");
-                cardsContainer.id = "analytics-cards";
-                cardsContainer.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8";
-                
-                const salesDiv = document.createElement("div");
-                salesDiv.className = "bg-cine-gray rounded-lg p-6";
-                salesDiv.innerHTML = `
-                    <h2 class="text-xl font-bold mb-4">Ventas por Día</h2>
-                    <div id="sales-list-container"></div>
-                `;
-                salesListContainer = salesDiv.querySelector("#sales-list-container");
-                
-                document.body.appendChild(cardsContainer);
-                document.body.appendChild(salesDiv);
-                
+                console.log("Final check - cardsContainer:", !!cardsContainer, "salesListContainer:", !!salesListContainer);
                 resolve({ cardsContainer, salesListContainer });
-            }
+            }, 500); // Wait 500ms before creating
         });
     };
 
