@@ -124,12 +124,13 @@ const api = {
 
     async getSeats(functionId) {
         const response = await fetch(
-            `${API_BASE_URL}/funcion/${functionId}/butacas`,
+            `${API_BASE_URL}/ButacasFuncion?funcionId=${functionId}`,
             {
                 headers: getHeaders(false),
             }
         );
         if (!response.ok) throw new Error("Error al cargar butacas");
+
         return await response.json();
     },
 
