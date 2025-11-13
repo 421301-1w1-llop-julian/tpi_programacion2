@@ -55,7 +55,7 @@ namespace WebApplication1.Repositories
                 ButacasFuncionIds = funcion.ButacasFuncions?.Select(bf => bf.IdButacaFuncion).ToList(),
                 DetalleReservaIds = funcion.DetalleReservas?.Select(dr => dr.IdDetalleReserva).ToList(),
                 DetalleCompraIds = funcion.DetallesCompras?.Select(dc => dc.IdDetalleCompra).ToList(),
-                FechasHorasEspecialesIds = funcion.FechasHorasEspeciales?.Select(fhe => fhe.IdFechasHorasEspecial).ToList()
+                FechasHorasEspecialesIds = funcion.FechasHorasEspeciales?.Select(fhe => fhe.IdFechaHoraEspecial).ToList()
             };
         }
 
