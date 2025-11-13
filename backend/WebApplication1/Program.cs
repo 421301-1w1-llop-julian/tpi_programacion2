@@ -39,6 +39,7 @@ builder.Services.AddScoped<ITiposProductoRepository, TiposProductoRepository>();
 builder.Services.AddScoped<IPeliculaRepository, PeliculaRepository>();
 builder.Services.AddScoped<IClasificacionRepository, ClasificacionRepository>();
 builder.Services.AddScoped<ITipoPublicoRepository, TipoPublicoRepository>();
+builder.Services.AddScoped<IFuncionRepository, FuncionRepository>();
 
 
 
@@ -57,6 +58,7 @@ builder.Services.AddScoped<ITiposProductoService, TiposProductoService>();
 builder.Services.AddScoped<IPeliculaService, PeliculaService>();
 builder.Services.AddScoped<IClasificacionService, ClasificacionService>();
 builder.Services.AddScoped<ITipoPublicoService, TipoPublicoService>();
+builder.Services.AddScoped<IFuncionService, FuncionService>();
 
 // --- JWT Authentication ---
 builder
