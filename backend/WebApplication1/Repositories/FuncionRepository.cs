@@ -14,11 +14,20 @@ namespace WebApplication1.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<FuncionListDTO>> GetAllAsync()
+        public async Task<IEnumerable<FuncionListDTO>> GetAllAsync(int? peliculaId = null)
         {
-            return await _context.Funciones
+            var query = _context.Funciones
                 .Include(f => f.IdPeliculaNavigation)
                 .Include(f => f.IdSalaNavigation)
+                .AsQueryable();
+
+            // Filtrar por película si se proporciona
+            if (peliculaId.HasValue)
+            {
+                query = query.Where(f => f.IdPelicula == peliculaId.Value);
+            }
+
+            return await query
                 .Select(f => new FuncionListDTO
                 {
                     IdFuncion = f.IdFuncion,

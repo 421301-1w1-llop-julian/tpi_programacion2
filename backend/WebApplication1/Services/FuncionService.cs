@@ -13,7 +13,7 @@ namespace WebApplication1.Services
             _repository = repository;
         }
 
-        public Task<IEnumerable<FuncionListDTO>> GetAllAsync() => _repository.GetAllAsync();
+        public Task<IEnumerable<FuncionListDTO>> GetAllAsync(int? peliculaId = null) => _repository.GetAllAsync(peliculaId);
         public Task<FuncionDTO> GetByIdAsync(int id) => _repository.GetByIdAsync(id);
         public Task<FuncionDTO> CreateAsync(FuncionCreateDTO dto) => _repository.CreateAsync(dto);
         public Task<FuncionDTO> UpdateAsync(FuncionUpdateDTO dto) => _repository.UpdateAsync(dto);

@@ -4,7 +4,7 @@ namespace WebApplication1.Services.Interfaces
 {
     public interface IFuncionService
     {
-        Task<IEnumerable<FuncionListDTO>> GetAllAsync();
+        Task<IEnumerable<FuncionListDTO>> GetAllAsync(int? peliculaId = null);
         Task<FuncionDTO> GetByIdAsync(int id);
         Task<FuncionDTO> CreateAsync(FuncionCreateDTO dto);
         Task<FuncionDTO> UpdateAsync(FuncionUpdateDTO dto);

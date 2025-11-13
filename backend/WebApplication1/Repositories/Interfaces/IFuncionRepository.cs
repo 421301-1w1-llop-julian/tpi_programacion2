@@ -4,7 +4,7 @@ namespace WebApplication1.Repositories.Interfaces
 {
     public interface IFuncionRepository
     {
-        Task<IEnumerable<FuncionListDTO>> GetAllAsync();
+        Task<IEnumerable<FuncionListDTO>> GetAllAsync(int? peliculaId = null);
         Task<FuncionDTO> GetByIdAsync(int id);
         Task<FuncionDTO> CreateAsync(FuncionCreateDTO dto);
         Task<FuncionDTO> UpdateAsync(FuncionUpdateDTO dto);

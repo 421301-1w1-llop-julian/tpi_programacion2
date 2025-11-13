@@ -18,9 +18,9 @@ namespace WebApplication1.Controllers
 
         // ---- PÚBLICOS ----
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int? peliculaId = null)
         {
-            var funciones = await _service.GetAllAsync();
+            var funciones = await _service.GetAllAsync(peliculaId);
             return Ok(funciones);
         }
 
