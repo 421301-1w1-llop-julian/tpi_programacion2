@@ -38,8 +38,8 @@ namespace WebApplication1.Repositories
                     SalaNombre = b.IdSalaNavigation != null
                         ? $"Sala {b.IdSalaNavigation.NumeroSala}"
                         : null,
-                    SalaNumero = b.IdSalaNavigation?.NumeroSala,
-                    TipoButaca = b.IdTipoButacaNavigation?.Nombre
+                    SalaNumero = b.IdSalaNavigation != null ? (int?)b.IdSalaNavigation.NumeroSala : null,
+                    TipoButaca = b.IdTipoButacaNavigation != null ? b.IdTipoButacaNavigation.Nombre : null
                 })
                 .ToListAsync();
         }
