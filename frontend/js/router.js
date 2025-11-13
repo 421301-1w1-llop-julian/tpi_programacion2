@@ -131,8 +131,14 @@ const router = {
 
                     // Call handler if provided
                     if (route.handler) {
-                        // Esperar un momento para asegurar que el DOM esté listo
-                        await new Promise((resolve) => setTimeout(resolve, 150));
+                        // Wait for DOM to be ready - use requestAnimationFrame for better timing
+                        await new Promise((resolve) => {
+                            requestAnimationFrame(() => {
+                                setTimeout(() => {
+                                    resolve();
+                                }, 200);
+                            });
+                        });
                         await route.handler(routeParams, queryParams);
                     }
                 } catch (error) {
