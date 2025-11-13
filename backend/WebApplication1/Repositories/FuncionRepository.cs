@@ -34,7 +34,10 @@ namespace WebApplication1.Repositories
         {
             var funcion = await _context.Funciones
                 .Include(f => f.IdPeliculaNavigation)
+                    .ThenInclude(p => p.PeliculasIdiomas)
+                        .ThenInclude(pi => pi.IdIdiomaNavigation)
                 .Include(f => f.IdSalaNavigation)
+                    .ThenInclude(s => s.IdTipoSalaNavigation)
                 .Include(f => f.ButacasFuncions)
                 .Include(f => f.DetalleReservas)
                 .Include(f => f.DetallesCompras)
@@ -42,6 +45,14 @@ namespace WebApplication1.Repositories
                 .FirstOrDefaultAsync(f => f.IdFuncion == id);
 
             if (funcion == null) return null;
+
+            // Obtener el formato del tipo de sala
+            var formato = funcion.IdSalaNavigation?.IdTipoSalaNavigation?.Nombre;
+
+            // Obtener el primer idioma de la película (o el más relevante)
+            var primerIdioma = funcion.IdPeliculaNavigation?.PeliculasIdiomas?.FirstOrDefault();
+            var idiomaId = primerIdioma?.IdIdioma;
+            var idiomaNombre = primerIdioma?.IdIdiomaNavigation?.Nombre;
 
             return new FuncionDTO
             {
@@ -52,6 +63,9 @@ namespace WebApplication1.Repositories
                 NombreSala = $"Sala {funcion.IdSalaNavigation?.NumeroSala ?? 0}",
                 FechaHoraInicio = funcion.FechaHoraInicio,
                 PrecioBase = funcion.PrecioBase,
+                Formato = formato,
+                IdiomaId = idiomaId,
+                Idioma = idiomaNombre,
                 ButacasFuncionIds = funcion.ButacasFuncions?.Select(bf => bf.IdButacaFuncion).ToList(),
                 DetalleReservaIds = funcion.DetalleReservas?.Select(dr => dr.IdDetalleReserva).ToList(),
                 DetalleCompraIds = funcion.DetallesCompras?.Select(dc => dc.IdDetalleCompra).ToList(),
