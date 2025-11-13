@@ -34,25 +34,56 @@ async function movieSeatsViewHandler(params, queryParams) {
         // Initialize price display
         updateTotalPrice();
 
-        // Setup ticket quantity selector
+        // Setup ticket quantity controls
         const quantityInput = document.getElementById("ticket-quantity");
-        quantityInput.addEventListener("input", (e) => {
-            ticketQuantity = parseInt(e.target.value) || 1;
-            if (ticketQuantity < 1) ticketQuantity = 1;
-            if (ticketQuantity > 10) ticketQuantity = 10;
-            e.target.value = ticketQuantity;
-            
-            // If current selection exceeds new quantity, remove excess seats
-            if (selectedSeats.length > ticketQuantity) {
-                selectedSeats = selectedSeats.slice(0, ticketQuantity);
+        const decreaseBtn = document.getElementById("quantity-decrease");
+        const increaseBtn = document.getElementById("quantity-increase");
+
+        const applyQuantityChange = () => {
+            if (quantityInput) {
+                quantityInput.value = ticketQuantity;
             }
-            
-            updateTotalPrice();
+
+            // If current selection exceeds new quantity, trim the selection
+            if (selectedSeats.length > ticketQuantity) {
+                while (selectedSeats.length > ticketQuantity) {
+                    const removedSeat = selectedSeats.pop();
+                    if (window.selectedSeatsInfo) {
+                        delete window.selectedSeatsInfo[removedSeat];
+                    }
+                }
+            }
+
             renderSeats(seats);
+            renderSummary(movie, funcion);
             updateSeatsDisplay();
-            updateSummary();
+            updateTotalPrice();
+            updateQuantityButtonsState();
             updateContinueButton();
-        });
+        };
+
+        if (quantityInput) {
+            quantityInput.value = ticketQuantity;
+        }
+        updateQuantityButtonsState();
+
+        if (decreaseBtn) {
+            decreaseBtn.addEventListener("click", () => {
+                if (ticketQuantity > 1) {
+                    ticketQuantity--;
+                    applyQuantityChange();
+                }
+            });
+        }
+
+        if (increaseBtn) {
+            increaseBtn.addEventListener("click", () => {
+                if (ticketQuantity < 10) {
+                    ticketQuantity++;
+                    applyQuantityChange();
+                }
+            });
+        }
 
         // Render seats
         renderSeats(seats);
@@ -257,6 +288,7 @@ window.toggleSeat = function (seatId, row, number) {
 
     // Update summary
     updateSeatsDisplay();
+    updateTotalPrice();
     updateContinueButton();
 };
 
@@ -304,9 +336,15 @@ function updateTotalPrice() {
     }
 }
 
-function updateSummary() {
-    if (currentSeatsMovie && currentSeatsFunction) {
-        renderSummary(currentSeatsMovie, currentSeatsFunction);
+function updateQuantityButtonsState() {
+    const decreaseBtn = document.getElementById("quantity-decrease");
+    const increaseBtn = document.getElementById("quantity-increase");
+
+    if (decreaseBtn) {
+        decreaseBtn.disabled = ticketQuantity <= 1;
+    }
+    if (increaseBtn) {
+        increaseBtn.disabled = ticketQuantity >= 10;
     }
 }
 
