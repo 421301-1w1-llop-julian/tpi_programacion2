@@ -38,13 +38,67 @@ async function dashboardViewHandler() {
                 
                 // If still not found, create them
                 console.warn("Elements not found, creating them...");
-                const dashboardContent = document.getElementById("dashboard-content");
+                let dashboardContent = document.getElementById("dashboard-content");
                 console.log("dashboard-content found:", !!dashboardContent);
                 
+                // If dashboard-content doesn't exist, try to find main or create structure
                 if (!dashboardContent) {
-                    console.error("dashboard-content not found!");
-                    resolve({ cardsContainer: null, salesListContainer: null });
-                    return;
+                    console.warn("dashboard-content not found, looking for main or app...");
+                    dashboardContent = document.querySelector("main") || document.querySelector("#app > main");
+                    
+                    if (!dashboardContent) {
+                        // Create the main structure
+                        console.warn("Creating dashboard structure...");
+                        const app = document.getElementById("app");
+                        if (app) {
+                            // Check if there's already a flex container
+                            let flexContainer = app.querySelector(".flex.min-h-screen");
+                            if (!flexContainer) {
+                                flexContainer = document.createElement("div");
+                                flexContainer.className = "flex min-h-screen";
+                                app.innerHTML = ""; // Clear existing content
+                                app.appendChild(flexContainer);
+                            }
+                            
+                            // Create main content area
+                            dashboardContent = document.createElement("main");
+                            dashboardContent.id = "dashboard-content";
+                            dashboardContent.className = "flex-1 md:ml-64 p-8";
+                            dashboardContent.innerHTML = `
+                                <h1 class="text-4xl font-bold mb-8">Analíticas</h1>
+                                <div class="bg-cine-gray rounded-lg p-6 mb-8">
+                                    <h2 class="text-xl font-bold mb-4">Filtros</h2>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium mb-2">Fecha Inicio</label>
+                                            <input type="date" id="filter-date-start" class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium mb-2">Fecha Fin</label>
+                                            <input type="date" id="filter-date-end" class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium mb-2">Monto Mínimo</label>
+                                            <input type="number" id="filter-amount-min" class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium mb-2">Monto Máximo</label>
+                                            <input type="number" id="filter-amount-max" class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded">
+                                        </div>
+                                    </div>
+                                    <button onclick="applyAnalyticsFilters()" class="mt-4 bg-cine-red px-6 py-2 rounded hover:bg-red-700 transition">
+                                        Aplicar Filtros
+                                    </button>
+                                </div>
+                            `;
+                            flexContainer.appendChild(dashboardContent);
+                            console.log("Created dashboard-content structure");
+                        } else {
+                            console.error("App container not found!");
+                            resolve({ cardsContainer: null, salesListContainer: null });
+                            return;
+                        }
+                    }
                 }
                 
                 // Create analytics-cards
@@ -124,12 +178,74 @@ async function dashboardViewHandler() {
     };
 
     try {
+        // First, let's see what's actually in the DOM
+        const app = document.getElementById("app");
+        console.log("App element:", app);
+        console.log("App innerHTML length:", app?.innerHTML?.length || 0);
+        console.log("App innerHTML contains 'dashboard-content':", app?.innerHTML?.includes("dashboard-content") || false);
+        console.log("App innerHTML contains 'analytics-cards':", app?.innerHTML?.includes("analytics-cards") || false);
+        
+        // Try to find dashboard-content in different ways
+        const dashboardContent1 = document.getElementById("dashboard-content");
+        const dashboardContent2 = document.querySelector("#dashboard-content");
+        const dashboardContent3 = app?.querySelector("#dashboard-content");
+        const dashboardContent4 = app?.querySelector("main");
+        
+        console.log("dashboard-content searches:", {
+            byId: !!dashboardContent1,
+            byQuerySelector: !!dashboardContent2,
+            inApp: !!dashboardContent3,
+            mainTag: !!dashboardContent4
+        });
+        
         console.log("Ensuring dashboard elements exist...");
         const { cardsContainer, salesListContainer } = await ensureElementsExist();
         console.log("Elements ready:", { 
             cards: !!cardsContainer, 
             sales: !!salesListContainer 
         });
+        
+        if (!cardsContainer || !salesListContainer) {
+            // Last resort: create elements directly in app
+            console.warn("Last resort: creating elements directly in app");
+            const appEl = document.getElementById("app");
+            if (appEl) {
+                // Find or create main
+                let mainEl = appEl.querySelector("main") || appEl.querySelector("#dashboard-content");
+                if (!mainEl) {
+                    mainEl = document.createElement("main");
+                    mainEl.id = "dashboard-content";
+                    mainEl.className = "flex-1 md:ml-64 p-8";
+                    appEl.appendChild(mainEl);
+                }
+                
+                // Create cards container
+                if (!cardsContainer) {
+                    const cardsEl = document.createElement("div");
+                    cardsEl.id = "analytics-cards";
+                    cardsEl.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8";
+                    mainEl.appendChild(cardsEl);
+                    cardsContainer = cardsEl;
+                }
+                
+                // Create sales container
+                if (!salesListContainer) {
+                    const salesDiv = document.createElement("div");
+                    salesDiv.className = "bg-cine-gray rounded-lg p-6";
+                    salesDiv.innerHTML = `
+                        <h2 class="text-xl font-bold mb-4">Ventas por Día</h2>
+                        <div id="sales-list-container"></div>
+                    `;
+                    mainEl.appendChild(salesDiv);
+                    salesListContainer = salesDiv.querySelector("#sales-list-container");
+                }
+                
+                console.log("Created elements as last resort:", {
+                    cards: !!cardsContainer,
+                    sales: !!salesListContainer
+                });
+            }
+        }
         
         if (!cardsContainer || !salesListContainer) {
             throw new Error("Could not find or create required dashboard elements");
