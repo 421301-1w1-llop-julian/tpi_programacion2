@@ -95,6 +95,15 @@ async function movieDetailViewHandler(params) {
                     <div id="showtimes-container" class="bg-gray-800 rounded-lg p-6">
                         <h2 class="text-2xl font-bold mb-4">Horarios Disponibles</h2>
                         <div id="showtimes-list"></div>
+                        <div class="mt-6 pt-6 border-t border-gray-700">
+                            <button
+                                id="continue-to-seats-btn"
+                                disabled
+                                class="w-full bg-gray-600 text-gray-400 px-8 py-3 rounded font-bold cursor-not-allowed transition"
+                            >
+                                Continuar
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -174,6 +183,28 @@ function setupMovieDetailListeners(movieId, functions, selectedDate) {
     let currentDate = selectedDate;
     let currentFormat = "";
     let currentLanguage = "";
+    
+    // Store selected function ID in a way that's accessible to both functions
+    const state = {
+        selectedFuncionId: null,
+        movieId: movieId
+    };
+
+    // Function to update continue button state
+    function updateContinueButton() {
+        const btn = document.getElementById("continue-to-seats-btn");
+        if (!btn) return;
+
+        if (state.selectedFuncionId && currentDate) {
+            btn.disabled = false;
+            btn.classList.remove("bg-gray-600", "text-gray-400", "cursor-not-allowed");
+            btn.classList.add("bg-cine-red", "text-white", "hover:bg-red-700", "cursor-pointer");
+        } else {
+            btn.disabled = true;
+            btn.classList.remove("bg-cine-red", "text-white", "hover:bg-red-700", "cursor-pointer");
+            btn.classList.add("bg-gray-600", "text-gray-400", "cursor-not-allowed");
+        }
+    }
 
     // Date selector
     document.querySelectorAll(".date-option").forEach((btn) => {
@@ -191,7 +222,9 @@ function setupMovieDetailListeners(movieId, functions, selectedDate) {
             btn.classList.remove("bg-gray-700", "text-gray-300");
             btn.classList.add("bg-cine-red", "text-white");
             currentDate = btn.dataset.date;
-            renderShowtimes(movieId, functions, currentDate, currentFormat, currentLanguage);
+            state.selectedFuncionId = null; // Reset selected function when date changes
+            renderShowtimes(movieId, functions, currentDate, currentFormat, currentLanguage, state);
+            updateContinueButton();
         });
     });
 
@@ -199,41 +232,69 @@ function setupMovieDetailListeners(movieId, functions, selectedDate) {
     const formatFilter = document.getElementById("format-filter");
     formatFilter.addEventListener("change", (e) => {
         currentFormat = e.target.value;
-        renderShowtimes(movieId, functions, currentDate, currentFormat, currentLanguage);
+        state.selectedFuncionId = null; // Reset selected function when filter changes
+        renderShowtimes(movieId, functions, currentDate, currentFormat, currentLanguage, state);
+        updateContinueButton();
     });
 
     // Language filter
     const languageFilter = document.getElementById("language-filter");
     languageFilter.addEventListener("change", (e) => {
         currentLanguage = e.target.value;
-        renderShowtimes(movieId, functions, currentDate, currentFormat, currentLanguage);
+        state.selectedFuncionId = null; // Reset selected function when filter changes
+        renderShowtimes(movieId, functions, currentDate, currentFormat, currentLanguage, state);
+        updateContinueButton();
     });
 
+    // Continue button handler
+    const continueBtn = document.getElementById("continue-to-seats-btn");
+    if (continueBtn) {
+        continueBtn.addEventListener("click", () => {
+            if (state.selectedFuncionId) {
+                // Check if user is authenticated
+                if (!auth.isAuthenticated()) {
+                    showNotification("Debes iniciar sesión para comprar entradas", "error");
+                    router.navigate("/login");
+                    return;
+                }
+                // Navigate to seat selection
+                router.navigate(`/pelicula/${movieId}/compra_entradas/butacas?funcion=${state.selectedFuncionId}`);
+            }
+        });
+    }
+
+    // Make state and updateContinueButton available to renderShowtimes
+    window.movieDetailState = state;
+    window.updateContinueButton = updateContinueButton;
+
     // Initial render
-    renderShowtimes(movieId, functions, currentDate, currentFormat, currentLanguage);
+    renderShowtimes(movieId, functions, currentDate, currentFormat, currentLanguage, state);
 }
 
-function renderShowtimes(movieId, functions, selectedDate, formatFilter, languageFilter) {
+function renderShowtimes(movieId, functions, selectedDate, formatFilter, languageFilter, state) {
     const showtimesList = document.getElementById("showtimes-list");
     if (!showtimesList) return;
 
-        // Filter functions by date
-        const selectedDateObj = new Date(selectedDate + "T00:00:00");
-        const filteredFunctions = functions.filter((func) => {
-            const funcDate = new Date(func.fechaHoraInicio);
-            const funcDateOnly = new Date(funcDate.getFullYear(), funcDate.getMonth(), funcDate.getDate());
-            const selectedDateOnly = new Date(selectedDateObj.getFullYear(), selectedDateObj.getMonth(), selectedDateObj.getDate());
-            
-            return (
-                funcDateOnly.getTime() === selectedDateOnly.getTime() &&
-                (!formatFilter || (func.formato || "2D") === formatFilter) &&
-                (!languageFilter || (func.idiomaId || func.idIdioma) === parseInt(languageFilter))
-            );
-        });
+    // Filter functions by date
+    const selectedDateObj = new Date(selectedDate + "T00:00:00");
+    const filteredFunctions = functions.filter((func) => {
+        const funcDate = new Date(func.fechaHoraInicio);
+        const funcDateOnly = new Date(funcDate.getFullYear(), funcDate.getMonth(), funcDate.getDate());
+        const selectedDateOnly = new Date(selectedDateObj.getFullYear(), selectedDateObj.getMonth(), selectedDateObj.getDate());
+        
+        return (
+            funcDateOnly.getTime() === selectedDateOnly.getTime() &&
+            (!formatFilter || (func.formato || "2D") === formatFilter) &&
+            (!languageFilter || (func.idiomaId || func.idIdioma) === parseInt(languageFilter))
+        );
+    });
 
     if (filteredFunctions.length === 0) {
         showtimesList.innerHTML =
             '<p class="text-gray-400 text-center py-8">No hay horarios disponibles para esta fecha</p>';
+        // Reset selection and update button
+        if (state) state.selectedFuncionId = null;
+        if (window.updateContinueButton) window.updateContinueButton();
         return;
     }
 
@@ -266,6 +327,8 @@ function renderShowtimes(movieId, functions, selectedDate, formatFilter, languag
     });
 
     // Render grouped showtimes
+    const currentSelectedFuncionId = state?.selectedFuncionId || null;
+    
     showtimesList.innerHTML = Object.values(grouped)
         .map(
             (group) => `
@@ -274,14 +337,21 @@ function renderShowtimes(movieId, functions, selectedDate, formatFilter, languag
                 <div class="flex flex-wrap gap-3">
                     ${group.showtimes
                         .map(
-                            (func) => `
+                            (func) => {
+                                const isSelected = currentSelectedFuncionId === func.idFuncion;
+                                return `
                         <button
-                            class="showtime-btn bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded transition"
+                            class="showtime-btn px-4 py-2 rounded transition ${
+                                isSelected
+                                    ? "bg-cine-red text-white border-2 border-red-600"
+                                    : "bg-gray-700 hover:bg-gray-600 text-gray-300"
+                            }"
                             data-funcion-id="${func.idFuncion}"
                         >
                             ${formatTime(func.fechaHoraInicio)}
                         </button>
-                    `
+                    `;
+                            }
                         )
                         .join("")}
                 </div>
@@ -293,10 +363,34 @@ function renderShowtimes(movieId, functions, selectedDate, formatFilter, languag
     // Add click listeners to showtime buttons
     document.querySelectorAll(".showtime-btn").forEach((btn) => {
         btn.addEventListener("click", () => {
-            const funcionId = btn.dataset.funcionId;
-            router.navigate(`/pelicula/${movieId}/compra_entradas/butacas?funcion=${funcionId}`);
+            const funcionId = parseInt(btn.dataset.funcionId);
+            
+            // Remove selection from all buttons
+            document.querySelectorAll(".showtime-btn").forEach((b) => {
+                b.classList.remove("bg-cine-red", "text-white", "border-2", "border-red-600");
+                b.classList.add("bg-gray-700", "text-gray-300");
+            });
+            
+            // Add selection to clicked button
+            btn.classList.remove("bg-gray-700", "text-gray-300");
+            btn.classList.add("bg-cine-red", "text-white", "border-2", "border-red-600");
+            
+            // Update selected function ID in state
+            if (state) {
+                state.selectedFuncionId = funcionId;
+            }
+            
+            // Update continue button state
+            if (window.updateContinueButton) {
+                window.updateContinueButton();
+            }
         });
     });
+    
+    // Update continue button state
+    if (window.updateContinueButton) {
+        window.updateContinueButton();
+    }
 }
 
 // formatTime is now in utils.js
