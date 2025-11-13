@@ -8,8 +8,8 @@ let purchaseData = {
 };
 
 // Store current movie and function for quick updates
-let currentMovie = null;
-let currentFunction = null;
+let currentCandyMovie = null;
+let currentCandyFunction = null;
 
 async function movieCandyViewHandler(params, queryParams) {
     const movieId = params.id;
@@ -39,8 +39,8 @@ async function movieCandyViewHandler(params, queryParams) {
         ]);
 
         // Store for quick updates
-        currentMovie = movie;
-        currentFunction = funcion;
+        currentCandyMovie = movie;
+        currentCandyFunction = funcion;
 
         // Render summary
         renderSummary(movie, funcion);
@@ -245,13 +245,13 @@ function updateProductDisplay(productId) {
 
 function updateSummary() {
     // Re-render summary with updated products
-    if (currentMovie && currentFunction) {
-        renderSummary(currentMovie, currentFunction);
+    if (currentCandyMovie && currentCandyFunction) {
+        renderSummary(currentCandyMovie, currentCandyFunction);
     } else {
         api.getMovie(purchaseData.movieId).then((movie) => {
-            currentMovie = movie;
+            currentCandyMovie = movie;
             api.getFunction(purchaseData.funcionId).then((funcion) => {
-                currentFunction = funcion;
+                currentCandyFunction = funcion;
                 renderSummary(movie, funcion);
             });
         });

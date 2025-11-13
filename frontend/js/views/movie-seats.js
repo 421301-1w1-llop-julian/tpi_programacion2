@@ -2,8 +2,8 @@
 let selectedSeats = [];
 let ticketQuantity = 1;
 let unitPrice = 0;
-let currentFunction = null;
-let currentMovie = null;
+let currentSeatsFunction = null;
+let currentSeatsMovie = null;
 
 async function movieSeatsViewHandler(params, queryParams) {
     const movieId = params.id;
@@ -22,8 +22,8 @@ async function movieSeatsViewHandler(params, queryParams) {
             api.getSeats(funcionId),
         ]);
 
-        currentMovie = movie;
-        currentFunction = funcion;
+        currentSeatsMovie = movie;
+        currentSeatsFunction = funcion;
         unitPrice = funcion.precioBase || 0;
         ticketQuantity = 1; // Reset quantity
         selectedSeats = []; // Reset selected seats
@@ -249,8 +249,8 @@ window.toggleSeat = function (seatId, row, number) {
     }
 
     // Re-render seats to update visual state
-    if (currentFunction) {
-        api.getSeats(currentFunction.idFuncion).then((seats) => {
+    if (currentSeatsFunction) {
+        api.getSeats(currentSeatsFunction.idFuncion).then((seats) => {
             renderSeats(seats);
         });
     }
@@ -305,8 +305,8 @@ function updateTotalPrice() {
 }
 
 function updateSummary() {
-    if (currentMovie && currentFunction) {
-        renderSummary(currentMovie, currentFunction);
+    if (currentSeatsMovie && currentSeatsFunction) {
+        renderSummary(currentSeatsMovie, currentSeatsFunction);
     }
 }
 
