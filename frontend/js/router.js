@@ -128,15 +128,22 @@ const router = {
                     const route = this.routes[matchedRoute];
                     const html = await this.loadView(route.viewFile);
                     app.innerHTML = html;
+                    
+                    // Force a reflow to ensure DOM is updated
+                    void app.offsetHeight;
 
                     // Call handler if provided
                     if (route.handler) {
-                        // Wait for DOM to be ready - use requestAnimationFrame for better timing
+                        // Wait for DOM to be ready - use multiple strategies
                         await new Promise((resolve) => {
+                            // Use requestAnimationFrame for better timing
                             requestAnimationFrame(() => {
+                                // Also wait a bit for browser to parse HTML
                                 setTimeout(() => {
+                                    // Force another reflow
+                                    void app.offsetHeight;
                                     resolve();
-                                }, 200);
+                                }, 300);
                             });
                         });
                         await route.handler(routeParams, queryParams);
