@@ -102,6 +102,11 @@ const router = {
                 window.location.hash.split("?")[1] || ""
             );
 
+            // Check if this is a dashboard route
+            const isDashboardRoute = path.startsWith("/dashboard");
+            const dashboardContent = document.getElementById("dashboard-content");
+            const isDashboardLoaded = dashboardContent !== null;
+
             // Update active nav link
             this.updateActiveNavLink();
 
@@ -121,43 +126,164 @@ const router = {
             if (matchedRoute) {
                 this.currentRoute = path;
                 const app = document.getElementById("app");
-                app.innerHTML =
-                    '<div class="flex justify-center items-center min-h-screen"><div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cine-red"></div></div>';
 
-                try {
-                    const route = this.routes[matchedRoute];
-                    const html = await this.loadView(route.viewFile);
-                    app.innerHTML = html;
-                    
-                    // Force a reflow to ensure DOM is updated
-                    void app.offsetHeight;
+                // Handle dashboard routes specially
+                if (isDashboardRoute) {
+                    // If dashboard is not loaded yet, load the full dashboard.html
+                    if (!isDashboardLoaded) {
+                        app.innerHTML =
+                            '<div class="flex justify-center items-center min-h-screen"><div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cine-red"></div></div>';
 
-                    // Call handler if provided
-                    if (route.handler) {
-                        // Wait for DOM to be ready - use multiple strategies
-                        await new Promise((resolve) => {
-                            // Use requestAnimationFrame for better timing
-                            requestAnimationFrame(() => {
-                                // Also wait a bit for browser to parse HTML
-                                setTimeout(() => {
-                                    // Force another reflow
-                                    void app.offsetHeight;
-                                    resolve();
-                                }, 300);
-                            });
-                        });
-                        await route.handler(routeParams, queryParams);
+                        try {
+                            const route = this.routes[matchedRoute];
+                            const html = await this.loadView(route.viewFile);
+                            app.innerHTML = html;
+                            
+                            // Force a reflow to ensure DOM is updated
+                            void app.offsetHeight;
+
+                            // Load initial content for dashboard
+                            const dashboardContent = document.getElementById("dashboard-content");
+                            if (dashboardContent) {
+                                // Determine content file based on route
+                                let contentFile = "dashboard-content.html";
+                                if (path === "/dashboard/peliculas") {
+                                    contentFile = "dashboard-peliculas-content.html";
+                                } else if (path === "/dashboard/productos") {
+                                    contentFile = "dashboard-productos-content.html";
+                                } else if (path === "/dashboard/actores") {
+                                    contentFile = "dashboard-actores-content.html";
+                                } else if (path === "/dashboard/directores") {
+                                    contentFile = "dashboard-directores-content.html";
+                                } else if (path === "/dashboard/idiomas") {
+                                    contentFile = "dashboard-idiomas-content.html";
+                                } else if (path === "/dashboard/funciones") {
+                                    contentFile = "dashboard-funciones-content.html";
+                                }
+
+                                const contentHtml = await this.loadView(contentFile);
+                                dashboardContent.innerHTML = contentHtml;
+                                void dashboardContent.offsetHeight;
+                            }
+
+                            // Call handler if provided
+                            if (route.handler) {
+                                await new Promise((resolve) => {
+                                    requestAnimationFrame(() => {
+                                        setTimeout(() => {
+                                            void app.offsetHeight;
+                                            resolve();
+                                        }, 300);
+                                    });
+                                });
+                                await route.handler(routeParams, queryParams);
+                            }
+                        } catch (error) {
+                            console.error("Route error:", error);
+                            app.innerHTML = `
+                            <div class="container mx-auto px-4 py-8">
+                                <div class="bg-red-900 bg-opacity-50 border border-red-500 rounded p-4">
+                                    <h2 class="text-xl font-bold mb-2">Error</h2>
+                                    <p>${sanitizeInput(error.message)}</p>
+                                </div>
+                            </div>
+                        `;
+                        }
+                    } else {
+                        // Dashboard is already loaded, just update the content
+                        const route = this.routes[matchedRoute];
+                        
+                        // Determine content file based on route
+                        let contentFile = "dashboard-content.html";
+                        if (path === "/dashboard/peliculas") {
+                            contentFile = "dashboard-peliculas-content.html";
+                        } else if (path === "/dashboard/productos") {
+                            contentFile = "dashboard-productos-content.html";
+                        } else if (path === "/dashboard/actores") {
+                            contentFile = "dashboard-actores-content.html";
+                        } else if (path === "/dashboard/directores") {
+                            contentFile = "dashboard-directores-content.html";
+                        } else if (path === "/dashboard/idiomas") {
+                            contentFile = "dashboard-idiomas-content.html";
+                        } else if (path === "/dashboard/funciones") {
+                            contentFile = "dashboard-funciones-content.html";
+                        }
+
+                        // Show loading
+                        dashboardContent.innerHTML =
+                            '<div class="flex justify-center items-center min-h-screen"><div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cine-red"></div></div>';
+
+                        try {
+                            const contentHtml = await this.loadView(contentFile);
+                            dashboardContent.innerHTML = contentHtml;
+                            
+                            // Force a reflow
+                            void dashboardContent.offsetHeight;
+
+                            // Call handler if provided
+                            if (route.handler) {
+                                await new Promise((resolve) => {
+                                    requestAnimationFrame(() => {
+                                        setTimeout(() => {
+                                            void dashboardContent.offsetHeight;
+                                            resolve();
+                                        }, 300);
+                                    });
+                                });
+                                await route.handler(routeParams, queryParams);
+                            }
+                        } catch (error) {
+                            console.error("Route error:", error);
+                            dashboardContent.innerHTML = `
+                            <div class="container mx-auto px-4 py-8">
+                                <div class="bg-red-900 bg-opacity-50 border border-red-500 rounded p-4">
+                                    <h2 class="text-xl font-bold mb-2">Error</h2>
+                                    <p>${sanitizeInput(error.message)}</p>
+                                </div>
+                            </div>
+                        `;
+                        }
                     }
-                } catch (error) {
-                    console.error("Route error:", error);
-                    app.innerHTML = `
-                    <div class="container mx-auto px-4 py-8">
-                        <div class="bg-red-900 bg-opacity-50 border border-red-500 rounded p-4">
-                            <h2 class="text-xl font-bold mb-2">Error</h2>
-                            <p>${sanitizeInput(error.message)}</p>
+                } else {
+                    // Non-dashboard route - normal handling
+                    app.innerHTML =
+                        '<div class="flex justify-center items-center min-h-screen"><div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cine-red"></div></div>';
+
+                    try {
+                        const route = this.routes[matchedRoute];
+                        const html = await this.loadView(route.viewFile);
+                        app.innerHTML = html;
+                        
+                        // Force a reflow to ensure DOM is updated
+                        void app.offsetHeight;
+
+                        // Call handler if provided
+                        if (route.handler) {
+                            // Wait for DOM to be ready - use multiple strategies
+                            await new Promise((resolve) => {
+                                // Use requestAnimationFrame for better timing
+                                requestAnimationFrame(() => {
+                                    // Also wait a bit for browser to parse HTML
+                                    setTimeout(() => {
+                                        // Force another reflow
+                                        void app.offsetHeight;
+                                        resolve();
+                                    }, 300);
+                                });
+                            });
+                            await route.handler(routeParams, queryParams);
+                        }
+                    } catch (error) {
+                        console.error("Route error:", error);
+                        app.innerHTML = `
+                        <div class="container mx-auto px-4 py-8">
+                            <div class="bg-red-900 bg-opacity-50 border border-red-500 rounded p-4">
+                                <h2 class="text-xl font-bold mb-2">Error</h2>
+                                <p>${sanitizeInput(error.message)}</p>
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                    }
                 }
             } else {
                 document.getElementById("app").innerHTML = `
