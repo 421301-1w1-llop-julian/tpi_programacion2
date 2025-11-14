@@ -26,22 +26,22 @@ document.addEventListener("DOMContentLoaded", () => {
     router.register("/candy/:id", "candy-detail.html", candyDetailViewHandler);
     router.register("/comprar", "purchase.html", purchaseViewHandler);
     router.register("/dashboard", "dashboard.html", dashboardViewHandler);
-    router.register("/dashboard/peliculas", "dashboard-peliculas.html", () =>
+    router.register("/dashboard/peliculas", "dashboard.html", () =>
         dashboardSectionViewHandler({ section: "peliculas" })
     );
-    router.register("/dashboard/productos", "dashboard-productos.html", () =>
+    router.register("/dashboard/productos", "dashboard.html", () =>
         dashboardSectionViewHandler({ section: "productos" })
     );
-    router.register("/dashboard/actores", "dashboard-actores.html", () =>
+    router.register("/dashboard/actores", "dashboard.html", () =>
         dashboardSectionViewHandler({ section: "actores" })
     );
-    router.register("/dashboard/directores", "dashboard-actores.html", () =>
+    router.register("/dashboard/directores", "dashboard.html", () =>
         dashboardSectionViewHandler({ section: "directores" })
     );
-    router.register("/dashboard/idiomas", "dashboard-actores.html", () =>
+    router.register("/dashboard/idiomas", "dashboard.html", () =>
         dashboardSectionViewHandler({ section: "idiomas" })
     );
-    router.register("/dashboard/funciones", "dashboard-actores.html", () =>
+    router.register("/dashboard/funciones", "dashboard.html", () =>
         dashboardSectionViewHandler({ section: "funciones" })
     );
 
