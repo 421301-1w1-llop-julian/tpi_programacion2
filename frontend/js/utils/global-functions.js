@@ -166,3 +166,46 @@ window.displaySalesList = function(compras) {
     `;
 }
 
+window.clearAnalyticsFilters = async function() {
+    // Clear all filter inputs
+    const fechaInicio = document.getElementById("filter-date-start");
+    const fechaFin = document.getElementById("filter-date-end");
+    const montoMinimo = document.getElementById("filter-amount-min");
+    const montoMaximo = document.getElementById("filter-amount-max");
+    
+    if (fechaInicio) fechaInicio.value = "";
+    if (fechaFin) fechaFin.value = "";
+    if (montoMinimo) montoMinimo.value = "";
+    if (montoMaximo) montoMaximo.value = "";
+    
+    try {
+        // Reload data without filters
+        const [analytics, compras] = await Promise.all([
+            api.getAnalytics(),
+            api.getCompras()
+        ]);
+        
+        // Calculate metrics
+        const totalVendido = analytics.ingresosTotales || 0;
+        const funcionesVendidas = analytics.totalFunciones || 0;
+        const entradasVendidas = Array.isArray(compras) ? compras.reduce((sum, c) => sum + (c.cantidadEntradas || 1), 0) : 0;
+        const promedioPorFuncion = funcionesVendidas > 0 ? totalVendido / funcionesVendidas : 0;
+        
+        // Update analytics cards
+        updateAnalyticsCards({
+            totalVendido: totalVendido,
+            funcionesVendidas: funcionesVendidas,
+            entradasVendidas: entradasVendidas,
+            promedioPorFuncion: promedioPorFuncion
+        });
+        
+        // Display sales list
+        displaySalesList(compras);
+        
+        showNotification("Filtros limpiados", "success");
+    } catch (error) {
+        console.error("Error clearing filters:", error);
+        showNotification("Error al limpiar filtros", "error");
+    }
+};
+

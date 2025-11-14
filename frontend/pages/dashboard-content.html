@@ -44,12 +44,20 @@
                 >
             </div>
         </div>
-        <button 
-            onclick="applyAnalyticsFilters()" 
-            class="bg-cine-red px-6 py-2 rounded hover:bg-red-700 transition text-white font-semibold shadow-md hover:shadow-lg"
-        >
-            Aplicar Filtros
-        </button>
+        <div class="flex gap-4">
+            <button 
+                onclick="applyAnalyticsFilters()" 
+                class="bg-cine-red px-6 py-2 rounded hover:bg-red-700 transition text-white font-semibold shadow-md hover:shadow-lg"
+            >
+                Aplicar Filtros
+            </button>
+            <button 
+                onclick="clearAnalyticsFilters()" 
+                class="bg-gray-700 px-6 py-2 rounded hover:bg-gray-600 transition text-white font-semibold shadow-md hover:shadow-lg"
+            >
+                Limpiar Filtros
+            </button>
+        </div>
     </div>
 
     <!-- Analytics Cards -->
