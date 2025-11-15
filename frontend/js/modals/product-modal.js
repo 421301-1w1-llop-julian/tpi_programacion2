@@ -13,26 +13,27 @@ function initProductModal() {
 
         const productId = document.getElementById("product-id").value;
         const formData = {
-            nombre: document.getElementById("product-nombre").value.trim(),
-            descripcion: document
+            Nombre: document.getElementById("product-nombre").value.trim(),
+            Descripcion: document
                 .getElementById("product-descripcion")
                 .value.trim(),
-            precio: parseFloat(document.getElementById("product-precio").value),
-            idTipoProducto: parseInt(
+            Precio: parseFloat(document.getElementById("product-precio").value),
+            IdTipoProducto: parseInt(
                 document.getElementById("product-tipo").value
             ),
+            Imagen: document.getElementById("product-imagen")?.value.trim() || "",
         };
 
         const validation = validateForm(formData, {
-            nombre: { required: true, label: "Nombre" },
-            descripcion: { required: true, label: "Descripción" },
-            precio: {
+            Nombre: { required: true, label: "Nombre" },
+            Descripcion: { required: true, label: "Descripción" },
+            Precio: {
                 required: true,
                 type: "decimal",
                 min: 0,
                 label: "Precio",
             },
-            idTipoProducto: {
+            IdTipoProducto: {
                 required: true,
                 type: "number",
                 label: "Tipo de Producto",
@@ -47,20 +48,30 @@ function initProductModal() {
 
         try {
             if (productId) {
+                console.log("Updating product with ID:", productId, "Data:", formData);
                 await api.updateProduct(productId, formData);
                 showNotification(
                     "Producto actualizado exitosamente",
                     "success"
                 );
             } else {
+                console.log("Creating new product with data:", formData);
                 await api.createProduct(formData);
                 showNotification("Producto creado exitosamente", "success");
             }
             closeProductModal();
-            loadProductsCRUD();
+            // Recargar la lista de productos
+            if (typeof loadProductsCRUD === 'function') {
+                loadProductsCRUD();
+            } else if (window.loadProductsCRUD) {
+                window.loadProductsCRUD();
+            }
         } catch (error) {
-            errorDiv.textContent = error.message;
+            console.error("Error saving product:", error);
+            const errorMessage = error.message || "Error al guardar el producto";
+            errorDiv.textContent = errorMessage;
             errorDiv.classList.remove("hidden");
+            showNotification(errorMessage, "error");
         }
     });
 }
@@ -93,16 +104,22 @@ window.showProductModal = async function (productId = null) {
 
         if (productId) {
             const product = await api.getProduct(productId);
+            console.log("Product data received:", product); // Debug
             document.getElementById("product-modal-title").textContent =
                 "Editar Producto";
             document.getElementById("product-id").value = productId;
             document.getElementById("product-nombre").value =
-                product.nombre || "";
+                product.nombre || product.Nombre || "";
             document.getElementById("product-descripcion").value =
-                product.descripcion || "";
+                product.descripcion || product.Descripcion || "";
             document.getElementById("product-precio").value =
-                product.precio || "";
-            if (tipoSelect) tipoSelect.value = product.idTipoProducto || "";
+                product.precio || product.Precio || "";
+            const imagenInput = document.getElementById("product-imagen");
+            if (imagenInput) {
+                imagenInput.value = product.imagen || product.Imagen || "";
+            }
+            const idTipoProducto = product.idTipoProducto || product.IdTipoProducto;
+            if (tipoSelect) tipoSelect.value = idTipoProducto || "";
         } else {
             document.getElementById("product-modal-title").textContent =
                 "Agregar Producto";

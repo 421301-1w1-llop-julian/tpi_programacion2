@@ -269,13 +269,19 @@ const api = {
     },
 
     async updateProduct(id, data) {
+        console.log(`Updating product ${id} at ${API_BASE_URL}/productos/${id}`, data);
         const response = await fetch(`${API_BASE_URL}/productos/${id}`, {
             method: "PUT",
             headers: getHeaders(),
             body: JSON.stringify(data),
         });
-        if (!response.ok) throw new Error("Error al actualizar producto");
-        return await response.json();
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("Update error:", response.status, errorText);
+            throw new Error(`Error al actualizar producto: ${response.status} ${errorText}`);
+        }
+        // El backend devuelve NoContent (204), no hay JSON que parsear
+        return null;
     },
 
     async deleteProduct(id) {
