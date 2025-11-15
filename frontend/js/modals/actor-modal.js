@@ -49,7 +49,10 @@ function initActorModal() {
 
 // Global functions for actors
 window.showActorModal = async function (actorId = null) {
-    await loadModal("actor-modal.html");
+    // Load modal only when needed (lazy loading)
+    if (!document.getElementById("actor-modal")) {
+        await loadModal("actor-modal.html");
+    }
     const modal = document.getElementById("actor-modal");
     if (!modal) return;
 

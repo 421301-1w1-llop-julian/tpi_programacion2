@@ -109,7 +109,10 @@ function initMovieModal() {
 
 // Global functions for movie modal
 window.showMovieModal = async function (movieId = null) {
-    await loadModal("movie-modal.html");
+    // Load modal only when needed (lazy loading)
+    if (!document.getElementById("movie-modal")) {
+        await loadModal("movie-modal.html");
+    }
     const modal = document.getElementById("movie-modal");
     if (!modal) return;
 

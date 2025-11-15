@@ -55,7 +55,6 @@ async function loadActorsCRUD() {
                 </tbody>
             </table>
         `;
-        await loadModal("actor-modal.html");
     } catch (error) {
         container.innerHTML = `<div class="p-4 text-red-400">Error al cargar actores: ${error.message}</div>`;
     }

@@ -47,7 +47,6 @@ async function loadProductsCRUD() {
                 </tbody>
             </table>
         `;
-        await loadModal("product-modal.html");
     } catch (error) {
         container.innerHTML = `<div class="p-4 text-red-400">Error al cargar productos: ${error.message}</div>`;
     }

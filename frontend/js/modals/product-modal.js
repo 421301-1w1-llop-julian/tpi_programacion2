@@ -67,7 +67,10 @@ function initProductModal() {
 
 // Global functions for products
 window.showProductModal = async function (productId = null) {
-    await loadModal("product-modal.html");
+    // Load modal only when needed (lazy loading)
+    if (!document.getElementById("product-modal")) {
+        await loadModal("product-modal.html");
+    }
     const modal = document.getElementById("product-modal");
     if (!modal) return;
 

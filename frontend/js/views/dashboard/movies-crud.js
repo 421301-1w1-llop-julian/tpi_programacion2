@@ -46,9 +46,6 @@ async function loadMoviesCRUD() {
                 </tbody>
             </table>
         `;
-
-        // Load modal
-        await loadModal("movie-modal.html");
     } catch (error) {
         container.innerHTML = `<div class="p-4 text-red-400">Error al cargar películas: ${error.message}</div>`;
     }
