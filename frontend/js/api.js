@@ -345,7 +345,7 @@ const api = {
     },
 
     async getActors() {
-        const response = await fetch(`${API_BASE_URL}/actores`, {
+        const response = await fetch(`${API_BASE_URL}/Actor`, {
             headers: getHeaders(false),
         });
         if (!response.ok) throw new Error("Error al cargar actores");
@@ -353,7 +353,7 @@ const api = {
     },
 
     async getActor(id) {
-        const response = await fetch(`${API_BASE_URL}/actores/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/Actor/${id}`, {
             headers: getHeaders(false),
         });
         if (!response.ok) throw new Error("Error al cargar actor");
@@ -377,7 +377,7 @@ const api = {
     },
 
     async createActor(data) {
-        const response = await fetch(`${API_BASE_URL}/actores`, {
+        const response = await fetch(`${API_BASE_URL}/Actor`, {
             method: "POST",
             headers: getHeaders(),
             body: JSON.stringify(data),
@@ -387,7 +387,7 @@ const api = {
     },
 
     async updateActor(id, data) {
-        const response = await fetch(`${API_BASE_URL}/actores/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/Actor/${id}`, {
             method: "PUT",
             headers: getHeaders(),
             body: JSON.stringify(data),
@@ -397,7 +397,7 @@ const api = {
     },
 
     async deleteActor(id) {
-        const response = await fetch(`${API_BASE_URL}/actores/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/Actor/${id}`, {
             method: "DELETE",
             headers: getHeaders(),
         });
@@ -406,7 +406,7 @@ const api = {
     },
 
     async getDirectors() {
-        const response = await fetch(`${API_BASE_URL}/directores`, {
+        const response = await fetch(`${API_BASE_URL}/Director`, {
             headers: getHeaders(false),
         });
         if (!response.ok) throw new Error("Error al cargar directores");
@@ -422,7 +422,7 @@ const api = {
     },
 
     async createDirector(data) {
-        const response = await fetch(`${API_BASE_URL}/directores`, {
+        const response = await fetch(`${API_BASE_URL}/Director`, {
             method: "POST",
             headers: getHeaders(),
             body: JSON.stringify(data),
@@ -432,7 +432,7 @@ const api = {
     },
 
     async updateDirector(id, data) {
-        const response = await fetch(`${API_BASE_URL}/directores/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/Director/${id}`, {
             method: "PUT",
             headers: getHeaders(),
             body: JSON.stringify(data),
@@ -442,7 +442,7 @@ const api = {
     },
 
     async deleteDirector(id) {
-        const response = await fetch(`${API_BASE_URL}/directores/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/Director/${id}`, {
             method: "DELETE",
             headers: getHeaders(),
         });
