@@ -249,35 +249,49 @@ window.showMovieModal = async function (movieId = null) {
             distribuidoraSelect.value = movie.idDistribuidora || "";
             tipoPublicoSelect.value = movie.idTipoPublico || "";
             
-            // Marcar géneros seleccionados
-            if (movie.generos && Array.isArray(movie.generos)) {
-                movie.generos.forEach(g => {
-                    const checkbox = generosContainer.querySelector(`input[value="${g.idGenero}"]`);
-                    if (checkbox) checkbox.checked = true;
+            // Marcar géneros seleccionados usando los IDs
+            // El backend devuelve generoIds (camelCase) o GeneroIds (PascalCase)
+            const generoIds = movie.generoIds || movie.GeneroIds || [];
+            if (Array.isArray(generoIds) && generoIds.length > 0) {
+                generoIds.forEach(id => {
+                    // Convertir a string para comparar con el value del checkbox (que es string)
+                    const checkbox = generosContainer.querySelector(`input[value="${String(id)}"]`);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                    }
                 });
             }
             
             // Marcar idiomas seleccionados
-            if (movie.idiomas && Array.isArray(movie.idiomas)) {
-                movie.idiomas.forEach(i => {
-                    const checkbox = idiomasContainer.querySelector(`input[value="${i.idIdioma}"]`);
-                    if (checkbox) checkbox.checked = true;
+            const idiomaIds = movie.idiomaIds || movie.IdiomaIds || [];
+            if (Array.isArray(idiomaIds) && idiomaIds.length > 0) {
+                idiomaIds.forEach(id => {
+                    const checkbox = idiomasContainer.querySelector(`input[value="${String(id)}"]`);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                    }
                 });
             }
             
             // Marcar actores seleccionados
-            if (movie.actores && Array.isArray(movie.actores)) {
-                movie.actores.forEach(a => {
-                    const checkbox = actoresContainer.querySelector(`input[value="${a.idActor}"]`);
-                    if (checkbox) checkbox.checked = true;
+            const actorIds = movie.actorIds || movie.ActorIds || [];
+            if (Array.isArray(actorIds) && actorIds.length > 0) {
+                actorIds.forEach(id => {
+                    const checkbox = actoresContainer.querySelector(`input[value="${String(id)}"]`);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                    }
                 });
             }
             
             // Marcar directores seleccionados
-            if (movie.directores && Array.isArray(movie.directores)) {
-                movie.directores.forEach(d => {
-                    const checkbox = directoresContainer.querySelector(`input[value="${d.idDirector}"]`);
-                    if (checkbox) checkbox.checked = true;
+            const directorIds = movie.directorIds || movie.DirectorIds || [];
+            if (Array.isArray(directorIds) && directorIds.length > 0) {
+                directorIds.forEach(id => {
+                    const checkbox = directoresContainer.querySelector(`input[value="${String(id)}"]`);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                    }
                 });
             }
         } else {

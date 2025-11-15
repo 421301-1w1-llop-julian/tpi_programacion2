@@ -19,8 +19,12 @@
 
         // Relaciones opcionales (solo si las necesitás)
         public List<string>? Generos { get; set; }
+        public List<int>? GeneroIds { get; set; }
         public List<string>? Idiomas { get; set; }
+        public List<int>? IdiomaIds { get; set; }
         public List<string>? Actores { get; set; }
+        public List<int>? ActorIds { get; set; }
         public List<string>? Directores { get; set; }
+        public List<int>? DirectorIds { get; set; }
     }
 }

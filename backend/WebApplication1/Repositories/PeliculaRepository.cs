@@ -112,14 +112,22 @@ namespace WebApplication1.Repositories
                 Distribuidora = pelicula.IdDistribuidoraNavigation?.Nombre,
                 IdTipoPublico = pelicula.IdTipoPublico,
                 TipoPublico = pelicula.IdTipoPublicoNavigation?.Nombre,
-                Generos = pelicula.PeliculasGeneros.Select(pg => pg.IdGeneroNavigation.Nombre).ToList(),
-                Idiomas = pelicula.PeliculasIdiomas.Select(pi => pi.IdIdiomaNavigation.Nombre).ToList(),
+                Generos = pelicula.PeliculasGeneros.Select(pg => pg.IdGeneroNavigation?.Nombre).ToList(),
+                GeneroIds = pelicula.PeliculasGeneros.Select(pg => pg.IdGenero).ToList(),
+                Idiomas = pelicula.PeliculasIdiomas.Select(pi => pi.IdIdiomaNavigation?.Nombre).ToList(),
+                IdiomaIds = pelicula.PeliculasIdiomas.Select(pi => pi.IdIdioma).ToList(),
                 Actores = pelicula.PeliculasActores
-                    .Select(pa => pa.IdActorNavigation.Nombre + " " + pa.IdActorNavigation.Apellido)
+                    .Select(pa => pa.IdActorNavigation != null 
+                        ? pa.IdActorNavigation.Nombre + " " + pa.IdActorNavigation.Apellido 
+                        : "")
                     .ToList(),
+                ActorIds = pelicula.PeliculasActores.Select(pa => pa.IdActor).ToList(),
                 Directores = pelicula.PeliculasDirectores
-                    .Select(pd => pd.IdDirectorNavigation.Nombre + " " + pd.IdDirectorNavigation.Apellido)
-                    .ToList()
+                    .Select(pd => pd.IdDirectorNavigation != null 
+                        ? pd.IdDirectorNavigation.Nombre + " " + pd.IdDirectorNavigation.Apellido 
+                        : "")
+                    .ToList(),
+                DirectorIds = pelicula.PeliculasDirectores.Select(pd => pd.IdDirector).ToList()
             };
         }
 
