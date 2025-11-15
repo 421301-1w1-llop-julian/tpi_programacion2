@@ -11,15 +11,29 @@ window.currentPage = 1;
 window.applyAnalyticsFilters = async function (pagina = 1, actualizarMetricas = true) {
     const fechaInicio = document.getElementById("filter-date-start")?.value;
     const fechaFin = document.getElementById("filter-date-end")?.value;
-    const montoMinimo = parseFloat(document.getElementById("filter-amount-min")?.value) || null;
-    const montoMaximo = parseFloat(document.getElementById("filter-amount-max")?.value) || null;
+    const montoMinimoInput = document.getElementById("filter-amount-min")?.value;
+    const montoMaximoInput = document.getElementById("filter-amount-max")?.value;
+    
+    // Parsear montos correctamente (manejar NaN y valores vacíos)
+    const montoMinimo = montoMinimoInput && montoMinimoInput.trim() !== "" 
+        ? (isNaN(parseFloat(montoMinimoInput)) ? null : parseFloat(montoMinimoInput)) 
+        : null;
+    const montoMaximo = montoMaximoInput && montoMaximoInput.trim() !== "" 
+        ? (isNaN(parseFloat(montoMaximoInput)) ? null : parseFloat(montoMaximoInput)) 
+        : null;
 
     // Build backend filters (incluyendo filtros de monto)
     const backendFilters = {};
     if (fechaInicio) backendFilters.fechaDesde = fechaInicio;
     if (fechaFin) backendFilters.fechaHasta = fechaFin;
-    if (montoMinimo !== null) backendFilters.montoMinimo = montoMinimo;
-    if (montoMaximo !== null) backendFilters.montoMaximo = montoMaximo;
+    if (montoMinimo !== null && montoMinimo !== undefined && !isNaN(montoMinimo)) {
+        backendFilters.montoMinimo = montoMinimo;
+    }
+    if (montoMaximo !== null && montoMaximo !== undefined && !isNaN(montoMaximo)) {
+        backendFilters.montoMaximo = montoMaximo;
+    }
+    
+    console.log("Filtros enviados al backend:", backendFilters);
 
     // Actualizar página actual
     window.currentPage = pagina;

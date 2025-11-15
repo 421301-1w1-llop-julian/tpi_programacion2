@@ -278,12 +278,16 @@ public class DashboardRepository : IDashboardRepository
         var comprasConTotales = await query.ToListAsync();
         
         // Calcular el total para cada compra y aplicar filtros de monto
-        var comprasFiltradas = comprasConTotales
+        var comprasConTotalesCalculados = comprasConTotales
             .Select(c => new
             {
                 Compra = c,
                 Total = c.DetallesCompras.Sum(dc => dc.PrecioUnitario * dc.Cantidad)
             })
+            .ToList();
+        
+        // Aplicar filtros de monto
+        var comprasFiltradas = comprasConTotalesCalculados
             .Where(x => 
                 (!filtros.MontoMinimo.HasValue || x.Total >= filtros.MontoMinimo.Value) &&
                 (!filtros.MontoMaximo.HasValue || x.Total <= filtros.MontoMaximo.Value)

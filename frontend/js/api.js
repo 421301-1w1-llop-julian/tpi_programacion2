@@ -193,10 +193,10 @@ const api = {
         if (filters.idCliente) params.append("idCliente", filters.idCliente);
         
         // Agregar filtros de monto
-        if (filters.montoMinimo !== undefined && filters.montoMinimo !== null) {
+        if (filters.montoMinimo !== undefined && filters.montoMinimo !== null && !isNaN(filters.montoMinimo)) {
             params.append("MontoMinimo", filters.montoMinimo.toString());
         }
-        if (filters.montoMaximo !== undefined && filters.montoMaximo !== null) {
+        if (filters.montoMaximo !== undefined && filters.montoMaximo !== null && !isNaN(filters.montoMaximo)) {
             params.append("MontoMaximo", filters.montoMaximo.toString());
         }
         
