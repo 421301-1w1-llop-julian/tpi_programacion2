@@ -321,12 +321,16 @@ public class DashboardRepository : IDashboardRepository
             pagina = 1;
         }
         
-        var compras = comprasFiltradas
+        // Aplicar paginación: Skip y Take deben aplicarse ANTES de convertir a lista
+        var comprasPaginadas = comprasFiltradas
             .Skip((pagina - 1) * tamañoPagina)
             .Take(tamañoPagina)
             .ToList();
+        
+        // Verificar que la paginación se aplicó correctamente
+        // Si comprasPaginadas.Count > tamañoPagina, hay un problema
 
-        var comprasDTO = compras.Select(c => new CompraDTO
+        var comprasDTO = comprasPaginadas.Select(c => new CompraDTO
         {
             IdCompra = c.IdCompra,
             IdCliente = c.IdCliente,
