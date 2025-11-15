@@ -413,6 +413,14 @@ const api = {
         return await response.json();
     },
 
+    async getDistribuidoras() {
+        const response = await fetch(`${API_BASE_URL}/Distribuidora`, {
+            headers: getHeaders(false),
+        });
+        if (!response.ok) throw new Error("Error al cargar distribuidoras");
+        return await response.json();
+    },
+
     async createDirector(data) {
         const response = await fetch(`${API_BASE_URL}/directores`, {
             method: "POST",

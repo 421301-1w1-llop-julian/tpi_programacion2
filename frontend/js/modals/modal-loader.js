@@ -8,7 +8,13 @@ async function loadModal(modalFile) {
     if (document.getElementById(modalId)) return; // Already loaded
 
     try {
-        const response = await fetch(`/views/modals/${modalFile}`);
+        // Try both paths in case the server maps them differently
+        let response;
+        try {
+            response = await fetch(`/pages/modals/${modalFile}`);
+        } catch {
+            response = await fetch(`/views/modals/${modalFile}`);
+        }
         const html = await response.text();
         document.body.insertAdjacentHTML("beforeend", html);
 
