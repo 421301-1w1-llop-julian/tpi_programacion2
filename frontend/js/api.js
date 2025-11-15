@@ -276,11 +276,33 @@ const api = {
             body: JSON.stringify(data),
         });
         if (!response.ok) {
-            const errorText = await response.text();
+            let errorText = "";
+            try {
+                // Intentar leer como texto primero
+                errorText = await response.text();
+                // Si el texto está vacío, usar el status
+                if (!errorText) {
+                    errorText = `Status ${response.status}`;
+                }
+            } catch (e) {
+                errorText = `Status ${response.status}`;
+            }
             console.error("Update error:", response.status, errorText);
             throw new Error(`Error al actualizar producto: ${response.status} ${errorText}`);
         }
         // El backend devuelve NoContent (204), no hay JSON que parsear
+        // Verificar el status code y el content-type antes de intentar parsear
+        if (response.status === 204) {
+            // NoContent - no hay cuerpo en la respuesta
+            return null;
+        }
+        // Si es 200, verificar si hay contenido JSON
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+            const text = await response.text();
+            return text ? JSON.parse(text) : null;
+        }
+        // Si no hay content-type JSON, retornar null
         return null;
     },
 
