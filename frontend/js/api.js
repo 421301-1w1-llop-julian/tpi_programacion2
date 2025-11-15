@@ -185,16 +185,20 @@ const api = {
         return await response.json();
     },
 
-    async getCompras(filters = {}, pagina = 1, tamañoPagina = 10) {
+    async getCompras(filters = {}, pagina = null, tamañoPagina = null) {
         const params = new URLSearchParams();
         if (filters.fechaDesde) params.append("fechaDesde", filters.fechaDesde);
         if (filters.fechaHasta) params.append("fechaHasta", filters.fechaHasta);
         if (filters.idPelicula) params.append("idPelicula", filters.idPelicula);
         if (filters.idCliente) params.append("idCliente", filters.idCliente);
         
-        // Agregar parámetros de paginación
-        params.append("Pagina", pagina.toString());
-        params.append("TamañoPagina", tamañoPagina.toString());
+        // Agregar parámetros de paginación solo si se proporcionan
+        if (pagina !== null) {
+            params.append("Pagina", pagina.toString());
+        }
+        if (tamañoPagina !== null) {
+            params.append("TamañoPagina", tamañoPagina.toString());
+        }
         
         const response = await fetch(
             `${API_BASE_URL}/Dashboard/compras?${params}`,

@@ -8,7 +8,7 @@ window.addToCart = function (productId) {
 // Variable global para la página actual
 window.currentPage = 1;
 
-window.applyAnalyticsFilters = async function (pagina = 1) {
+window.applyAnalyticsFilters = async function (pagina = 1, actualizarMetricas = true) {
     const fechaInicio = document.getElementById("filter-date-start")?.value;
     const fechaFin = document.getElementById("filter-date-end")?.value;
     const montoMinimo = parseFloat(document.getElementById("filter-amount-min")?.value) || null;
@@ -23,6 +23,22 @@ window.applyAnalyticsFilters = async function (pagina = 1) {
     window.currentPage = pagina;
 
     try {
+        const hasAmountFilters = montoMinimo !== null || montoMaximo !== null;
+        
+        // Si hay filtros de monto y necesitamos actualizar métricas, obtener todas las compras sin paginación
+        let comprasCompletas = null;
+        if (actualizarMetricas && hasAmountFilters) {
+            // Obtener todas las compras sin paginación para calcular métricas correctamente
+            const comprasCompletasResponse = await api.getCompras(backendFilters, null, null);
+            // Si la respuesta es un array (sin paginación), usarlo directamente
+            // Si es un objeto paginado, extraer los datos
+            if (Array.isArray(comprasCompletasResponse)) {
+                comprasCompletas = comprasCompletasResponse;
+            } else {
+                comprasCompletas = comprasCompletasResponse.datos || comprasCompletasResponse.Datos || [];
+            }
+        }
+
         const [analytics, comprasResponse] = await Promise.all([
             api.getAnalytics(backendFilters),
             api.getCompras(backendFilters, pagina, 10)
@@ -34,51 +50,53 @@ window.applyAnalyticsFilters = async function (pagina = 1) {
         const totalPaginas = comprasResponse.totalPaginas || comprasResponse.TotalPaginas || 1;
         const paginaActual = comprasResponse.paginaActual || comprasResponse.PaginaActual || 1;
 
-        // Apply amount filters on frontend (since backend doesn't support it)
+        // Calcular métricas solo si se debe actualizar (no al cambiar de página)
+        if (actualizarMetricas) {
+            let totalVendido, funcionesVendidas, entradasVendidas, promedioPorFuncion;
+
+            if (hasAmountFilters && comprasCompletas) {
+                // Aplicar filtros de monto a todas las compras
+                let filteredCompras = comprasCompletas;
+                if (montoMinimo !== null) {
+                    filteredCompras = filteredCompras.filter(c => (c.total || c.Total || 0) >= montoMinimo);
+                }
+                if (montoMaximo !== null) {
+                    filteredCompras = filteredCompras.filter(c => (c.total || c.Total || 0) <= montoMaximo);
+                }
+
+                // Calcular métricas basadas en todas las compras filtradas
+                totalVendido = filteredCompras.reduce((sum, c) => sum + (c.total || c.Total || 0), 0);
+                funcionesVendidas = filteredCompras.length; // Aproximación
+                entradasVendidas = filteredCompras.length; // Aproximación
+                promedioPorFuncion = funcionesVendidas > 0 ? totalVendido / funcionesVendidas : 0;
+            } else {
+                // Usar valores del endpoint de analytics (totales completos)
+                totalVendido = analytics.ingresosTotales || analytics.IngresosTotales || 0;
+                funcionesVendidas = analytics.totalFunciones || analytics.TotalFunciones || 0;
+                // Para entradas vendidas, usar el total de compras del analytics o aproximar
+                entradasVendidas = analytics.totalCompras || analytics.TotalCompras || totalCompras;
+                promedioPorFuncion = funcionesVendidas > 0 ? totalVendido / funcionesVendidas : 0;
+            }
+
+            // Update analytics cards
+            updateAnalyticsCards({
+                totalVendido: totalVendido,
+                funcionesVendidas: funcionesVendidas,
+                entradasVendidas: entradasVendidas,
+                promedioPorFuncion: promedioPorFuncion
+            });
+        }
+
+        // Aplicar filtros de monto solo a las compras de la página actual para mostrar
         let filteredCompras = compras || [];
-        const hasAmountFilters = montoMinimo !== null || montoMaximo !== null;
-        
-        if (montoMinimo !== null) {
-            filteredCompras = filteredCompras.filter(c => (c.total || c.Total || 0) >= montoMinimo);
-        }
-        if (montoMaximo !== null) {
-            filteredCompras = filteredCompras.filter(c => (c.total || c.Total || 0) <= montoMaximo);
-        }
-
-        // Calculate metrics
-        const totalVendido = filteredCompras.reduce((sum, c) => sum + (c.total || c.Total || 0), 0);
-        
-        // For funciones vendidas: use analytics value when no amount filters, otherwise approximate
-        let funcionesVendidas;
         if (hasAmountFilters) {
-            // When filtering by amount, approximate: each compra typically represents one function
-            funcionesVendidas = filteredCompras.length;
-        } else {
-            // Use the value from analytics when no amount filters are applied
-            funcionesVendidas = analytics.totalFunciones || analytics.TotalFunciones || filteredCompras.length;
+            if (montoMinimo !== null) {
+                filteredCompras = filteredCompras.filter(c => (c.total || c.Total || 0) >= montoMinimo);
+            }
+            if (montoMaximo !== null) {
+                filteredCompras = filteredCompras.filter(c => (c.total || c.Total || 0) <= montoMaximo);
+            }
         }
-        
-        // For entradas vendidas: use analytics value when no amount filters, otherwise approximate
-        let entradasVendidas;
-        if (hasAmountFilters) {
-            // Approximation: each compra has at least one ticket
-            // In a real scenario, we'd need to count butacas from DetallesCompra
-            entradasVendidas = filteredCompras.length;
-        } else {
-            // Use analytics value or calculate from compras
-            // Since analytics doesn't have entradasVendidas directly, use compras count as approximation
-            entradasVendidas = filteredCompras.length;
-        }
-        
-        const promedioPorFuncion = funcionesVendidas > 0 ? totalVendido / funcionesVendidas : 0;
-
-        // Update analytics cards
-        updateAnalyticsCards({
-            totalVendido: totalVendido,
-            funcionesVendidas: funcionesVendidas,
-            entradasVendidas: entradasVendidas,
-            promedioPorFuncion: promedioPorFuncion
-        });
 
         // Display sales list with pagination
         displaySalesList(filteredCompras, {
@@ -87,7 +105,9 @@ window.applyAnalyticsFilters = async function (pagina = 1) {
             totalRegistros: totalCompras
         });
 
-        showNotification("Filtros aplicados", "success");
+        if (actualizarMetricas) {
+            showNotification("Filtros aplicados", "success");
+        }
     } catch (error) {
         console.error("Error applying filters:", error);
         showNotification("Error al aplicar filtros", "error");
@@ -144,7 +164,7 @@ window.displaySalesList = function(compras, paginacion = null) {
                 </div>
                 <div class="flex gap-2">
                     <button 
-                        onclick="applyAnalyticsFilters(${paginaActual - 1})"
+                        onclick="applyAnalyticsFilters(${paginaActual - 1}, false)"
                         ${paginaActual <= 1 ? 'disabled' : ''}
                         class="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600 transition text-white disabled:opacity-50 disabled:cursor-not-allowed"
                         ${paginaActual <= 1 ? 'style="pointer-events: none;"' : ''}
@@ -152,7 +172,7 @@ window.displaySalesList = function(compras, paginacion = null) {
                         Anterior
                     </button>
                     <button 
-                        onclick="applyAnalyticsFilters(${paginaActual + 1})"
+                        onclick="applyAnalyticsFilters(${paginaActual + 1}, false)"
                         ${paginaActual >= totalPaginas ? 'disabled' : ''}
                         class="px-4 py-2 bg-cine-red rounded hover:bg-red-700 transition text-white disabled:opacity-50 disabled:cursor-not-allowed"
                         ${paginaActual >= totalPaginas ? 'style="pointer-events: none;"' : ''}
@@ -233,47 +253,12 @@ window.clearAnalyticsFilters = async function() {
     if (montoMinimo) montoMinimo.value = "";
     if (montoMaximo) montoMaximo.value = "";
     
-    // Resetear a página 1
+    // Resetear a página 1 y recargar con métricas actualizadas
     window.currentPage = 1;
     
-    try {
-        // Reload data without filters
-        const [analytics, comprasResponse] = await Promise.all([
-            api.getAnalytics(),
-            api.getCompras({}, 1, 10)
-        ]);
-        
-        // La respuesta ahora es un objeto paginado
-        const compras = comprasResponse.datos || comprasResponse.Datos || [];
-        const totalCompras = comprasResponse.totalRegistros || comprasResponse.TotalRegistros || 0;
-        const totalPaginas = comprasResponse.totalPaginas || comprasResponse.TotalPaginas || 1;
-        const paginaActual = comprasResponse.paginaActual || comprasResponse.PaginaActual || 1;
-        
-        // Calculate metrics
-        const totalVendido = analytics.ingresosTotales || analytics.IngresosTotales || 0;
-        const funcionesVendidas = analytics.totalFunciones || analytics.TotalFunciones || 0;
-        const entradasVendidas = Array.isArray(compras) ? compras.reduce((sum, c) => sum + (c.cantidadEntradas || 1), 0) : 0;
-        const promedioPorFuncion = funcionesVendidas > 0 ? totalVendido / funcionesVendidas : 0;
-        
-        // Update analytics cards
-        updateAnalyticsCards({
-            totalVendido: totalVendido,
-            funcionesVendidas: funcionesVendidas,
-            entradasVendidas: entradasVendidas,
-            promedioPorFuncion: promedioPorFuncion
-        });
-        
-        // Display sales list with pagination
-        displaySalesList(compras, {
-            paginaActual: paginaActual,
-            totalPaginas: totalPaginas,
-            totalRegistros: totalCompras
-        });
-        
-        showNotification("Filtros limpiados", "success");
-    } catch (error) {
-        console.error("Error clearing filters:", error);
-        showNotification("Error al limpiar filtros", "error");
-    }
+    // Llamar a applyAnalyticsFilters con página 1 y actualizar métricas
+    await applyAnalyticsFilters(1, true);
+    
+    showNotification("Filtros limpiados", "success");
 };
 

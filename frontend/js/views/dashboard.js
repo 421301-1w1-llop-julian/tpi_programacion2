@@ -93,10 +93,11 @@ async function dashboardViewHandler() {
         const totalPaginas = comprasResponse.totalPaginas || comprasResponse.TotalPaginas || 1;
         const paginaActual = comprasResponse.paginaActual || comprasResponse.PaginaActual || 1;
 
-        // Calculate metrics
+        // Calculate metrics usando valores del analytics (totales completos)
         const totalVendido = analytics.ingresosTotales || analytics.IngresosTotales || 0;
         const funcionesVendidas = analytics.totalFunciones || analytics.TotalFunciones || 0;
-        const entradasVendidas = Array.isArray(compras) ? compras.reduce((sum, c) => sum + (c.cantidadEntradas || 1), 0) : 0;
+        // Usar el total de compras del analytics o del total de registros paginados
+        const entradasVendidas = analytics.totalCompras || analytics.TotalCompras || totalCompras;
         const promedioPorFuncion = funcionesVendidas > 0 ? totalVendido / funcionesVendidas : 0;
 
         // Update analytics cards
