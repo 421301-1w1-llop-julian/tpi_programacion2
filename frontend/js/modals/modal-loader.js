@@ -3,17 +3,28 @@ let movieModalInitialized = false;
 let productModalInitialized = false;
 let actorModalInitialized = false;
 
+// Compute modalPath at runtime from the current document path (same logic as router)
+const modalPath = (function () {
+    try {
+        const pathname = window.location.pathname || "/";
+        const base = pathname.endsWith("/")
+            ? pathname
+            : pathname.substring(0, pathname.lastIndexOf("/") + 1);
+        return base + "pages/modals/";
+    } catch (e) {
+        return "./pages/modals/";
+    }
+})();
+
 async function loadModal(modalFile) {
     const modalId = modalFile.replace(".html", "");
     if (document.getElementById(modalId)) return; // Already loaded
 
     try {
-        // Try both paths in case the server maps them differently
-        let response;
-        try {
-            response = await fetch(`/pages/modals/${modalFile}`);
-        } catch {
-            response = await fetch(`/views/modals/${modalFile}`);
+        // Use the same path calculation logic as the router
+        const response = await fetch(modalPath + modalFile);
+        if (!response.ok) {
+            throw new Error(`Failed to load modal: ${response.status}`);
         }
         const html = await response.text();
         document.body.insertAdjacentHTML("beforeend", html);
