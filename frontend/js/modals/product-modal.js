@@ -21,7 +21,8 @@ function initProductModal() {
             IdTipoProducto: parseInt(
                 document.getElementById("product-tipo").value
             ),
-            Imagen: document.getElementById("product-imagen")?.value.trim() || "",
+            Imagen:
+                document.getElementById("product-imagen")?.value.trim() || "",
         };
 
         const validation = validateForm(formData, {
@@ -48,7 +49,12 @@ function initProductModal() {
 
         try {
             if (productId) {
-                console.log("Updating product with ID:", productId, "Data:", formData);
+                console.log(
+                    "Updating product with ID:",
+                    productId,
+                    "Data:",
+                    formData
+                );
                 await api.updateProduct(productId, formData);
                 showNotification(
                     "Producto actualizado exitosamente",
@@ -61,14 +67,15 @@ function initProductModal() {
             }
             closeProductModal();
             // Recargar la lista de productos
-            if (typeof loadProductsCRUD === 'function') {
+            if (typeof loadProductsCRUD === "function") {
                 loadProductsCRUD();
             } else if (window.loadProductsCRUD) {
                 window.loadProductsCRUD();
             }
         } catch (error) {
             console.error("Error saving product:", error);
-            const errorMessage = error.message || "Error al guardar el producto";
+            const errorMessage =
+                error.message || "Error al guardar el producto";
             errorDiv.textContent = errorMessage;
             errorDiv.classList.remove("hidden");
             showNotification(errorMessage, "error");
@@ -95,8 +102,8 @@ window.showProductModal = async function (productId = null) {
                 productTypes
                     .map(
                         (t) =>
-                            `<option value="${t.idTipoProducto}">${sanitizeInput(
-                                t.nombre
+                            `<option value="${t.TipoProducto}">${sanitizeInput(
+                                t.tipoProducto
                             )}</option>`
                     )
                     .join("");
@@ -118,7 +125,8 @@ window.showProductModal = async function (productId = null) {
             if (imagenInput) {
                 imagenInput.value = product.imagen || product.Imagen || "";
             }
-            const idTipoProducto = product.idTipoProducto || product.IdTipoProducto;
+            const idTipoProducto =
+                product.idTipoProducto || product.IdTipoProducto;
             if (tipoSelect) tipoSelect.value = idTipoProducto || "";
         } else {
             document.getElementById("product-modal-title").textContent =
@@ -140,4 +148,3 @@ window.closeProductModal = function () {
         document.getElementById("product-form")?.reset();
     }
 };
-
