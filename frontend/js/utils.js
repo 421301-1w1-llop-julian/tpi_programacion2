@@ -22,17 +22,36 @@ function validateForm(formData, rules) {
         const value = formData[field];
         const rule = rules[field];
 
-        if (rule.required && (!value || value.trim() === '')) {
-            errors[field] = `${rule.label || field} es requerido`;
-            continue;
+        // Check if required - handle different value types
+        if (rule.required) {
+            if (value === null || value === undefined) {
+                errors[field] = `${rule.label || field} es requerido`;
+                continue;
+            }
+            // For strings, check if empty after trim
+            if (typeof value === 'string' && value.trim() === '') {
+                errors[field] = `${rule.label || field} es requerido`;
+                continue;
+            }
+            // For arrays, check if empty
+            if (Array.isArray(value) && value.length === 0) {
+                errors[field] = `${rule.label || field} es requerido`;
+                continue;
+            }
+            // For numbers, check if NaN (but don't check min here, that's done below)
+            if (typeof value === 'number' && isNaN(value)) {
+                errors[field] = `${rule.label || field} es requerido`;
+                continue;
+            }
         }
 
-        if (value && rule.minLength && value.length < rule.minLength) {
+        // Only apply string length validations to strings
+        if (value && typeof value === 'string' && rule.minLength && value.length < rule.minLength) {
             errors[field] = `${rule.label || field} debe tener al menos ${rule.minLength} caracteres`;
             continue;
         }
 
-        if (value && rule.maxLength && value.length > rule.maxLength) {
+        if (value && typeof value === 'string' && rule.maxLength && value.length > rule.maxLength) {
             errors[field] = `${rule.label || field} no puede exceder ${rule.maxLength} caracteres`;
             continue;
         }
