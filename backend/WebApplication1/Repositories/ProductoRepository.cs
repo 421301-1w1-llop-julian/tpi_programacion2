@@ -47,7 +47,17 @@ namespace WebApplication1.Repositories
 
         public async Task UpdateAsync(Producto producto)
         {
-            _context.Entry(producto).State = EntityState.Modified;
+            var existingProduct = await _context.Productos.FindAsync(producto.IdProducto);
+            if (existingProduct == null)
+                throw new ArgumentException($"Producto con ID {producto.IdProducto} no encontrado");
+
+            // Actualizar propiedades
+            existingProduct.Nombre = producto.Nombre;
+            existingProduct.Descripcion = producto.Descripcion;
+            existingProduct.Precio = producto.Precio;
+            existingProduct.IdTipoProducto = producto.IdTipoProducto;
+            existingProduct.Imagen = producto.Imagen;
+
             await _context.SaveChangesAsync();
         }
     }

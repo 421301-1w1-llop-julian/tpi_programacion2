@@ -101,10 +101,11 @@ window.showProductModal = async function (productId = null) {
                 '<option value="">Seleccionar...</option>' +
                 productTypes
                     .map(
-                        (t) =>
-                            `<option value="${t.TipoProducto}">${sanitizeInput(
-                                t.tipoProducto
-                            )}</option>`
+                        (t) => {
+                            const id = t.IdTipoProducto || t.idTipoProducto;
+                            const nombre = t.TipoProducto || t.tipoProducto || "";
+                            return `<option value="${id}">${sanitizeInput(nombre)}</option>`;
+                        }
                     )
                     .join("");
         }
