@@ -235,12 +235,17 @@ const api = {
     },
 
     async updateMovie(id, data) {
+        console.log(`Updating movie ${id} at ${API_BASE_URL}/Pelicula/${id}`, data);
         const response = await fetch(`${API_BASE_URL}/Pelicula/${id}`, {
             method: "PUT",
             headers: getHeaders(),
             body: JSON.stringify(data),
         });
-        if (!response.ok) throw new Error("Error al actualizar película");
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("Update error:", response.status, errorText);
+            throw new Error(`Error al actualizar película: ${response.status} ${errorText}`);
+        }
         return await response.json();
     },
 

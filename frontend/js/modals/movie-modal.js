@@ -43,11 +43,18 @@ function initMovieModal() {
             IdPais: parseInt(document.getElementById("movie-pais").value),
             IdDistribuidora: parseInt(document.getElementById("movie-distribuidora").value),
             IdTipoPublico: parseInt(document.getElementById("movie-tipo-publico").value),
-            GeneroIds: generoIds.length > 0 ? generoIds : null,
-            IdiomaIds: idiomaIds.length > 0 ? idiomaIds : null,
-            ActorIds: actorIds.length > 0 ? actorIds : null,
-            DirectorIds: directorIds.length > 0 ? directorIds : null
+            GeneroIds: generoIds.length > 0 ? generoIds : [],
+            IdiomaIds: idiomaIds.length > 0 ? idiomaIds : [],
+            ActorIds: actorIds.length > 0 ? actorIds : [],
+            DirectorIds: directorIds.length > 0 ? directorIds : []
         };
+        
+        // Si es actualización, agregar IdPelicula (requerido por PeliculaUpdateDTO)
+        if (movieId) {
+            formData.IdPelicula = parseInt(movieId);
+        }
+        
+        console.log("Form data to send:", formData); // Debug
 
         const validation = validateForm(formData, {
             Nombre: { required: true, label: "Nombre" },
@@ -89,20 +96,32 @@ function initMovieModal() {
 
         try {
             if (movieId) {
-                await api.updateMovie(movieId, formData);
+                console.log("Updating movie with ID:", movieId, "Data:", formData);
+                const result = await api.updateMovie(movieId, formData);
+                console.log("Update result:", result);
                 showNotification(
                     "Película actualizada exitosamente",
                     "success"
                 );
             } else {
-                await api.createMovie(formData);
+                console.log("Creating new movie with data:", formData);
+                const result = await api.createMovie(formData);
+                console.log("Create result:", result);
                 showNotification("Película creada exitosamente", "success");
             }
             closeMovieModal();
-            loadMoviesCRUD();
+            // Recargar la lista de películas
+            if (typeof loadMoviesCRUD === 'function') {
+                loadMoviesCRUD();
+            } else if (window.loadMoviesCRUD) {
+                window.loadMoviesCRUD();
+            }
         } catch (error) {
-            errorDiv.textContent = error.message;
+            console.error("Error saving movie:", error);
+            const errorMessage = error.message || "Error al guardar la película";
+            errorDiv.textContent = errorMessage;
             errorDiv.classList.remove("hidden");
+            showNotification(errorMessage, "error");
         }
     });
 }

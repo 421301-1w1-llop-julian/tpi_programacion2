@@ -183,8 +183,10 @@ namespace WebApplication1.Repositories
 
             if (pelicula == null) return null;
 
+            // Actualizar campos básicos (solo si tienen valor)
             if (dto.Nombre != null) pelicula.Nombre = dto.Nombre;
             if (dto.Descripcion != null) pelicula.Descripcion = dto.Descripcion;
+            if (dto.Imagen != null) pelicula.Imagen = dto.Imagen;
             if (dto.Duracion.HasValue) pelicula.Duracion = dto.Duracion.Value;
             if (dto.FechaEstreno.HasValue) pelicula.FechaEstreno = dto.FechaEstreno;
             if (dto.IdClasificacion.HasValue) pelicula.IdClasificacion = dto.IdClasificacion.Value;
