@@ -286,12 +286,17 @@ public class DashboardRepository : IDashboardRepository
             })
             .ToList();
         
+        // Debug: Verificar que los filtros se están recibiendo
+        // Console.WriteLine($"MontoMinimo: {filtros.MontoMinimo}, MontoMaximo: {filtros.MontoMaximo}");
+        
         // Aplicar filtros de monto
         var comprasFiltradas = comprasConTotalesCalculados
             .Where(x => 
-                (!filtros.MontoMinimo.HasValue || x.Total >= filtros.MontoMinimo.Value) &&
-                (!filtros.MontoMaximo.HasValue || x.Total <= filtros.MontoMaximo.Value)
-            )
+            {
+                bool cumpleMinimo = !filtros.MontoMinimo.HasValue || x.Total >= filtros.MontoMinimo.Value;
+                bool cumpleMaximo = !filtros.MontoMaximo.HasValue || x.Total <= filtros.MontoMaximo.Value;
+                return cumpleMinimo && cumpleMaximo;
+            })
             .Select(x => x.Compra)
             .OrderByDescending(c => c.FechaCompra)
             .ToList();

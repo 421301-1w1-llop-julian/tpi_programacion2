@@ -195,9 +195,11 @@ const api = {
         // Agregar filtros de monto
         if (filters.montoMinimo !== undefined && filters.montoMinimo !== null && !isNaN(filters.montoMinimo)) {
             params.append("MontoMinimo", filters.montoMinimo.toString());
+            console.log("Enviando MontoMinimo:", filters.montoMinimo);
         }
         if (filters.montoMaximo !== undefined && filters.montoMaximo !== null && !isNaN(filters.montoMaximo)) {
             params.append("MontoMaximo", filters.montoMaximo.toString());
+            console.log("Enviando MontoMaximo:", filters.montoMaximo);
         }
         
         // Agregar parámetros de paginación solo si se proporcionan
@@ -208,12 +210,12 @@ const api = {
             params.append("TamañoPagina", tamañoPagina.toString());
         }
         
-        const response = await fetch(
-            `${API_BASE_URL}/Dashboard/compras?${params}`,
-            {
-                headers: getHeaders(),
-            }
-        );
+        const url = `${API_BASE_URL}/Dashboard/compras?${params}`;
+        console.log("URL de petición:", url);
+        
+        const response = await fetch(url, {
+            headers: getHeaders(),
+        });
         if (!response.ok) throw new Error("Error al cargar compras");
         return await response.json();
     },

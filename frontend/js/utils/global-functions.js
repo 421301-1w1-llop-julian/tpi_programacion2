@@ -26,14 +26,15 @@ window.applyAnalyticsFilters = async function (pagina = 1, actualizarMetricas = 
     const backendFilters = {};
     if (fechaInicio) backendFilters.fechaDesde = fechaInicio;
     if (fechaFin) backendFilters.fechaHasta = fechaFin;
-    if (montoMinimo !== null && montoMinimo !== undefined && !isNaN(montoMinimo)) {
+    if (montoMinimo !== null && montoMinimo !== undefined && !isNaN(montoMinimo) && montoMinimo >= 0) {
         backendFilters.montoMinimo = montoMinimo;
     }
-    if (montoMaximo !== null && montoMaximo !== undefined && !isNaN(montoMaximo)) {
+    if (montoMaximo !== null && montoMaximo !== undefined && !isNaN(montoMaximo) && montoMaximo >= 0) {
         backendFilters.montoMaximo = montoMaximo;
     }
     
     console.log("Filtros enviados al backend:", backendFilters);
+    console.log("Valores parseados - montoMinimo:", montoMinimo, "montoMaximo:", montoMaximo);
 
     // Actualizar página actual
     window.currentPage = pagina;

@@ -79,6 +79,9 @@ public class DashboardController : ControllerBase
     {
         try
         {
+            // Debug: Verificar que los filtros se están recibiendo
+            // Los logs se pueden ver en la consola del servidor o en los logs de la aplicación
+            
             // Si se solicita paginación, usar el método paginado
             if (filtros.Pagina.HasValue || filtros.TamañoPagina.HasValue)
             {
