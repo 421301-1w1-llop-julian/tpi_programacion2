@@ -311,37 +311,52 @@ window.showMovieModal = async function (movieId = null) {
                 console.log(`${typeName} - IDs to mark:`, selectedIds);
                 
                 // Marcar los checkboxes correspondientes
+                let markedCount = 0;
                 selectedIds.forEach(id => {
                     const idStr = String(id);
                     // Buscar el checkbox por valor exacto
                     const checkbox = allCheckboxes.find(cb => cb.value === idStr);
                     if (checkbox) {
                         checkbox.checked = true;
+                        markedCount++;
                         console.log(`✓ Marked ${typeName} checkbox with value: ${idStr}`);
                     } else {
-                        console.warn(`✗ Checkbox not found for ${typeName} ID: ${idStr}`);
+                        console.warn(`✗ Checkbox not found for ${typeName} ID: ${idStr}. Available values:`, 
+                            allCheckboxes.map(cb => ({ value: cb.value, type: typeof cb.value })));
                     }
                 });
+                console.log(`${typeName} - Marked ${markedCount} out of ${selectedIds.length} checkboxes`);
             };
             
             // Esperar un momento para asegurar que los checkboxes estén en el DOM
-            await new Promise(resolve => setTimeout(resolve, 50));
+            // Usar requestAnimationFrame para asegurar que el DOM esté completamente renderizado
+            await new Promise(resolve => {
+                requestAnimationFrame(() => {
+                    setTimeout(() => {
+                        resolve();
+                    }, 100);
+                });
+            });
             
             // Marcar géneros seleccionados usando los IDs
             // El backend devuelve generoIds (camelCase) o GeneroIds (PascalCase)
             const generoIds = movie.generoIds || movie.GeneroIds || [];
+            console.log("GeneroIds from movie:", generoIds, "Type:", typeof generoIds, "IsArray:", Array.isArray(generoIds));
             markCheckboxes(generosContainer, generoIds, "Genero");
             
             // Marcar idiomas seleccionados
             const idiomaIds = movie.idiomaIds || movie.IdiomaIds || [];
+            console.log("IdiomaIds from movie:", idiomaIds);
             markCheckboxes(idiomasContainer, idiomaIds, "Idioma");
             
             // Marcar actores seleccionados
             const actorIds = movie.actorIds || movie.ActorIds || [];
+            console.log("ActorIds from movie:", actorIds);
             markCheckboxes(actoresContainer, actorIds, "Actor");
             
             // Marcar directores seleccionados
             const directorIds = movie.directorIds || movie.DirectorIds || [];
+            console.log("DirectorIds from movie:", directorIds);
             markCheckboxes(directoresContainer, directorIds, "Director");
         } else {
             document.getElementById("movie-modal-title").textContent =
