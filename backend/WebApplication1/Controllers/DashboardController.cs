@@ -72,13 +72,21 @@ public class DashboardController : ControllerBase
     }
 
     /// <summary>
-    /// Obtiene todas las compras con filtros opcionales
+    /// Obtiene todas las compras con filtros opcionales y paginación
     /// </summary>
     [HttpGet("compras")]
     public async Task<IActionResult> ObtenerCompras([FromQuery] FiltrosDashboardDTO filtros)
     {
         try
         {
+            // Si se solicita paginación, usar el método paginado
+            if (filtros.Pagina.HasValue || filtros.TamañoPagina.HasValue)
+            {
+                var comprasPaginadas = await _dashboardService.ObtenerComprasPaginadasAsync(filtros);
+                return Ok(comprasPaginadas);
+            }
+            
+            // Si no se solicita paginación, devolver todas las compras (comportamiento anterior)
             var dashboard = await _dashboardService.ObtenerDashboardAsync(filtros);
             return Ok(dashboard.Compras);
         }

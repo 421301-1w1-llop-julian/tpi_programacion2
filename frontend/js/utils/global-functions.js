@@ -5,7 +5,10 @@ window.addToCart = function (productId) {
     showNotification("Producto agregado al carrito", "success");
 };
 
-window.applyAnalyticsFilters = async function () {
+// Variable global para la página actual
+window.currentPage = 1;
+
+window.applyAnalyticsFilters = async function (pagina = 1) {
     const fechaInicio = document.getElementById("filter-date-start")?.value;
     const fechaFin = document.getElementById("filter-date-end")?.value;
     const montoMinimo = parseFloat(document.getElementById("filter-amount-min")?.value) || null;
@@ -16,25 +19,34 @@ window.applyAnalyticsFilters = async function () {
     if (fechaInicio) backendFilters.fechaDesde = fechaInicio;
     if (fechaFin) backendFilters.fechaHasta = fechaFin;
 
+    // Actualizar página actual
+    window.currentPage = pagina;
+
     try {
-        const [analytics, compras] = await Promise.all([
+        const [analytics, comprasResponse] = await Promise.all([
             api.getAnalytics(backendFilters),
-            api.getCompras(backendFilters)
+            api.getCompras(backendFilters, pagina, 10)
         ]);
+
+        // La respuesta ahora es un objeto paginado
+        const compras = comprasResponse.datos || comprasResponse.Datos || [];
+        const totalCompras = comprasResponse.totalRegistros || comprasResponse.TotalRegistros || 0;
+        const totalPaginas = comprasResponse.totalPaginas || comprasResponse.TotalPaginas || 1;
+        const paginaActual = comprasResponse.paginaActual || comprasResponse.PaginaActual || 1;
 
         // Apply amount filters on frontend (since backend doesn't support it)
         let filteredCompras = compras || [];
         const hasAmountFilters = montoMinimo !== null || montoMaximo !== null;
         
         if (montoMinimo !== null) {
-            filteredCompras = filteredCompras.filter(c => (c.total || 0) >= montoMinimo);
+            filteredCompras = filteredCompras.filter(c => (c.total || c.Total || 0) >= montoMinimo);
         }
         if (montoMaximo !== null) {
-            filteredCompras = filteredCompras.filter(c => (c.total || 0) <= montoMaximo);
+            filteredCompras = filteredCompras.filter(c => (c.total || c.Total || 0) <= montoMaximo);
         }
 
         // Calculate metrics
-        const totalVendido = filteredCompras.reduce((sum, c) => sum + (c.total || 0), 0);
+        const totalVendido = filteredCompras.reduce((sum, c) => sum + (c.total || c.Total || 0), 0);
         
         // For funciones vendidas: use analytics value when no amount filters, otherwise approximate
         let funcionesVendidas;
@@ -43,7 +55,7 @@ window.applyAnalyticsFilters = async function () {
             funcionesVendidas = filteredCompras.length;
         } else {
             // Use the value from analytics when no amount filters are applied
-            funcionesVendidas = analytics.totalFunciones || filteredCompras.length;
+            funcionesVendidas = analytics.totalFunciones || analytics.TotalFunciones || filteredCompras.length;
         }
         
         // For entradas vendidas: use analytics value when no amount filters, otherwise approximate
@@ -68,8 +80,12 @@ window.applyAnalyticsFilters = async function () {
             promedioPorFuncion: promedioPorFuncion
         });
 
-        // Display sales list
-        displaySalesList(filteredCompras);
+        // Display sales list with pagination
+        displaySalesList(filteredCompras, {
+            paginaActual: paginaActual,
+            totalPaginas: totalPaginas,
+            totalRegistros: totalCompras
+        });
 
         showNotification("Filtros aplicados", "success");
     } catch (error) {
@@ -102,7 +118,7 @@ window.updateAnalyticsCards = function(metrics) {
     `;
 }
 
-window.displaySalesList = function(compras) {
+window.displaySalesList = function(compras, paginacion = null) {
     const salesListContainer = document.getElementById("sales-list-container");
     if (!salesListContainer) return;
     
@@ -111,10 +127,42 @@ window.displaySalesList = function(compras) {
         return;
     }
     
-    // Sort by date (most recent first)
-    const sortedCompras = [...compras].sort((a, b) => 
-        new Date(b.fechaCompra) - new Date(a.fechaCompra)
-    );
+    // Sort by date (most recent first) - aunque ya viene ordenado del backend
+    const sortedCompras = [...compras].sort((a, b) => {
+        const fechaA = new Date(a.fechaCompra || a.FechaCompra);
+        const fechaB = new Date(b.fechaCompra || b.FechaCompra);
+        return fechaB - fechaA;
+    });
+    
+    let paginacionHTML = "";
+    if (paginacion && paginacion.totalPaginas > 1) {
+        const { paginaActual, totalPaginas } = paginacion;
+        paginacionHTML = `
+            <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-700">
+                <div class="text-sm text-gray-400">
+                    Página ${paginaActual} de ${totalPaginas}
+                </div>
+                <div class="flex gap-2">
+                    <button 
+                        onclick="applyAnalyticsFilters(${paginaActual - 1})"
+                        ${paginaActual <= 1 ? 'disabled' : ''}
+                        class="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600 transition text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                        ${paginaActual <= 1 ? 'style="pointer-events: none;"' : ''}
+                    >
+                        Anterior
+                    </button>
+                    <button 
+                        onclick="applyAnalyticsFilters(${paginaActual + 1})"
+                        ${paginaActual >= totalPaginas ? 'disabled' : ''}
+                        class="px-4 py-2 bg-cine-red rounded hover:bg-red-700 transition text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                        ${paginaActual >= totalPaginas ? 'style="pointer-events: none;"' : ''}
+                    >
+                        Siguiente
+                    </button>
+                </div>
+            </div>
+        `;
+    }
     
     salesListContainer.innerHTML = `
         <div class="overflow-x-auto">
@@ -132,7 +180,7 @@ window.displaySalesList = function(compras) {
                 </thead>
                 <tbody>
                     ${sortedCompras.map(compra => {
-                        const fecha = new Date(compra.fechaCompra);
+                        const fecha = new Date(compra.fechaCompra || compra.FechaCompra);
                         const fechaFormateada = fecha.toLocaleDateString('es-AR', {
                             year: 'numeric',
                             month: '2-digit',
@@ -140,21 +188,27 @@ window.displaySalesList = function(compras) {
                             hour: '2-digit',
                             minute: '2-digit'
                         });
+                        const idCompra = compra.idCompra || compra.IdCompra;
+                        const nombreCliente = compra.nombreCliente || compra.NombreCliente || "N/A";
+                        const pelicula = compra.pelicula || compra.Pelicula || "N/A";
+                        const formaPago = compra.formaPago || compra.FormaPago || "N/A";
+                        const total = compra.total || compra.Total || 0;
+                        const estado = compra.estado || compra.Estado || "N/A";
                         return `
                         <tr class="border-b border-gray-800 hover:bg-gray-800 transition">
-                            <td class="py-3 px-4">#${compra.idCompra}</td>
-                            <td class="py-3 px-4">${sanitizeInput(compra.nombreCliente || "N/A")}</td>
-                            <td class="py-3 px-4">${sanitizeInput(compra.pelicula || "N/A")}</td>
+                            <td class="py-3 px-4">#${idCompra}</td>
+                            <td class="py-3 px-4">${sanitizeInput(nombreCliente)}</td>
+                            <td class="py-3 px-4">${sanitizeInput(pelicula)}</td>
                             <td class="py-3 px-4">${fechaFormateada}</td>
-                            <td class="py-3 px-4">${sanitizeInput(compra.formaPago || "N/A")}</td>
-                            <td class="text-right py-3 px-4 font-semibold">${formatCurrency(compra.total || 0)}</td>
+                            <td class="py-3 px-4">${sanitizeInput(formaPago)}</td>
+                            <td class="text-right py-3 px-4 font-semibold">${formatCurrency(total)}</td>
                             <td class="py-3 px-4">
                                 <span class="px-2 py-1 rounded text-xs ${
-                                    compra.estado === "Completada" 
+                                    estado === "Completada" 
                                         ? "bg-green-900 text-green-300" 
                                         : "bg-gray-700 text-gray-300"
                                 }">
-                                    ${sanitizeInput(compra.estado || "N/A")}
+                                    ${sanitizeInput(estado)}
                                 </span>
                             </td>
                         </tr>
@@ -163,6 +217,7 @@ window.displaySalesList = function(compras) {
                 </tbody>
             </table>
         </div>
+        ${paginacionHTML}
     `;
 }
 
@@ -178,16 +233,25 @@ window.clearAnalyticsFilters = async function() {
     if (montoMinimo) montoMinimo.value = "";
     if (montoMaximo) montoMaximo.value = "";
     
+    // Resetear a página 1
+    window.currentPage = 1;
+    
     try {
         // Reload data without filters
-        const [analytics, compras] = await Promise.all([
+        const [analytics, comprasResponse] = await Promise.all([
             api.getAnalytics(),
-            api.getCompras()
+            api.getCompras({}, 1, 10)
         ]);
         
+        // La respuesta ahora es un objeto paginado
+        const compras = comprasResponse.datos || comprasResponse.Datos || [];
+        const totalCompras = comprasResponse.totalRegistros || comprasResponse.TotalRegistros || 0;
+        const totalPaginas = comprasResponse.totalPaginas || comprasResponse.TotalPaginas || 1;
+        const paginaActual = comprasResponse.paginaActual || comprasResponse.PaginaActual || 1;
+        
         // Calculate metrics
-        const totalVendido = analytics.ingresosTotales || 0;
-        const funcionesVendidas = analytics.totalFunciones || 0;
+        const totalVendido = analytics.ingresosTotales || analytics.IngresosTotales || 0;
+        const funcionesVendidas = analytics.totalFunciones || analytics.TotalFunciones || 0;
         const entradasVendidas = Array.isArray(compras) ? compras.reduce((sum, c) => sum + (c.cantidadEntradas || 1), 0) : 0;
         const promedioPorFuncion = funcionesVendidas > 0 ? totalVendido / funcionesVendidas : 0;
         
@@ -199,8 +263,12 @@ window.clearAnalyticsFilters = async function() {
             promedioPorFuncion: promedioPorFuncion
         });
         
-        // Display sales list
-        displaySalesList(compras);
+        // Display sales list with pagination
+        displaySalesList(compras, {
+            paginaActual: paginaActual,
+            totalPaginas: totalPaginas,
+            totalRegistros: totalCompras
+        });
         
         showNotification("Filtros limpiados", "success");
     } catch (error) {

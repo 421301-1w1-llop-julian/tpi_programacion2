@@ -67,5 +67,16 @@ public class FiltrosDashboardDTO
     public int? IdSala { get; set; }
     public int? TopPeliculas { get; set; }
     public bool? SoloPeliculasMasVistas { get; set; }
+    public int? Pagina { get; set; }
+    public int? TamañoPagina { get; set; }
+}
+
+public class RespuestaPaginadaDTO<T>
+{
+    public List<T> Datos { get; set; } = new();
+    public int PaginaActual { get; set; }
+    public int TamañoPagina { get; set; }
+    public int TotalPaginas { get; set; }
+    public int TotalRegistros { get; set; }
 }
 

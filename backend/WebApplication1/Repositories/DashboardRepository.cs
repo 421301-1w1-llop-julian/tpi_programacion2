@@ -242,6 +242,77 @@ public class DashboardRepository : IDashboardRepository
         }).ToList();
     }
 
+    public async Task<RespuestaPaginadaDTO<CompraDTO>> ObtenerComprasPaginadasAsync(FiltrosDashboardDTO filtros)
+    {
+        var query = _context.Compras
+            .Include(c => c.IdClienteNavigation)
+            .Include(c => c.IdFormaPagoNavigation)
+            .Include(c => c.DetallesCompras)
+                .ThenInclude(dc => dc.IdFuncionNavigation)
+                    .ThenInclude(f => f.IdPeliculaNavigation)
+            .AsQueryable();
+
+        if (filtros.FechaDesde.HasValue)
+        {
+            query = query.Where(c => c.FechaCompra >= filtros.FechaDesde.Value);
+        }
+
+        if (filtros.FechaHasta.HasValue)
+        {
+            query = query.Where(c => c.FechaCompra <= filtros.FechaHasta.Value);
+        }
+
+        if (filtros.IdCliente.HasValue)
+        {
+            query = query.Where(c => c.IdCliente == filtros.IdCliente.Value);
+        }
+
+        if (filtros.IdPelicula.HasValue)
+        {
+            query = query.Where(c => c.DetallesCompras.Any(dc => dc.IdFuncionNavigation != null && dc.IdFuncionNavigation.IdPelicula == filtros.IdPelicula.Value));
+        }
+
+        // Ordenar por fecha de compra descendente
+        query = query.OrderByDescending(c => c.FechaCompra);
+
+        // Obtener total de registros
+        var totalRegistros = await query.CountAsync();
+
+        // Aplicar paginación
+        int pagina = filtros.Pagina ?? 1;
+        int tamañoPagina = filtros.TamañoPagina ?? 10;
+        
+        var compras = await query
+            .Skip((pagina - 1) * tamañoPagina)
+            .Take(tamañoPagina)
+            .ToListAsync();
+
+        var comprasDTO = compras.Select(c => new CompraDTO
+        {
+            IdCompra = c.IdCompra,
+            IdCliente = c.IdCliente,
+            NombreCliente = c.IdClienteNavigation != null 
+                ? $"{c.IdClienteNavigation.Nombre} {c.IdClienteNavigation.Apellido}".Trim()
+                : "N/A",
+            FechaCompra = c.FechaCompra,
+            FormaPago = c.IdFormaPagoNavigation?.Descripcion ?? "N/A",
+            Estado = c.Estado,
+            Total = c.DetallesCompras.Sum(dc => dc.PrecioUnitario * dc.Cantidad),
+            Pelicula = c.DetallesCompras.FirstOrDefault(dc => dc.IdFuncionNavigation != null)?.IdFuncionNavigation?.IdPeliculaNavigation?.Nombre ?? "N/A"
+        }).ToList();
+
+        var totalPaginas = (int)Math.Ceiling(totalRegistros / (double)tamañoPagina);
+
+        return new RespuestaPaginadaDTO<CompraDTO>
+        {
+            Datos = comprasDTO,
+            PaginaActual = pagina,
+            TamañoPagina = tamañoPagina,
+            TotalPaginas = totalPaginas,
+            TotalRegistros = totalRegistros
+        };
+    }
+
     public async Task<List<FuncionDTO>> ObtenerFuncionesAsync(FiltrosDashboardDTO filtros)
     {
         var query = _context.Funciones
