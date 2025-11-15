@@ -13,15 +13,15 @@ function initActorModal() {
 
         const actorId = document.getElementById("actor-id").value;
         const formData = {
-            nombre: document.getElementById("actor-nombre").value.trim(),
-            apellido: document.getElementById("actor-apellido").value.trim(),
-            idPais: parseInt(document.getElementById("actor-pais").value),
+            Nombre: document.getElementById("actor-nombre").value.trim(),
+            Apellido: document.getElementById("actor-apellido").value.trim(),
+            IdPais: parseInt(document.getElementById("actor-pais").value),
         };
 
         const validation = validateForm(formData, {
-            nombre: { required: true, label: "Nombre" },
-            apellido: { required: true, label: "Apellido" },
-            idPais: { required: true, type: "number", label: "País" },
+            Nombre: { required: true, label: "Nombre" },
+            Apellido: { required: true, label: "Apellido" },
+            IdPais: { required: true, type: "number", label: "País" },
         });
 
         if (!validation.isValid) {
@@ -32,17 +32,27 @@ function initActorModal() {
 
         try {
             if (actorId) {
+                console.log("Updating actor with ID:", actorId, "Data:", formData);
                 await api.updateActor(actorId, formData);
                 showNotification("Actor actualizado exitosamente", "success");
             } else {
+                console.log("Creating new actor with data:", formData);
                 await api.createActor(formData);
                 showNotification("Actor creado exitosamente", "success");
             }
             closeActorModal();
-            loadActorsCRUD();
+            // Recargar la lista de actores
+            if (typeof loadActorsCRUD === "function") {
+                loadActorsCRUD();
+            } else if (window.loadActorsCRUD) {
+                window.loadActorsCRUD();
+            }
         } catch (error) {
-            errorDiv.textContent = error.message;
+            console.error("Error saving actor:", error);
+            const errorMessage = error.message || "Error al guardar el actor";
+            errorDiv.textContent = errorMessage;
             errorDiv.classList.remove("hidden");
+            showNotification(errorMessage, "error");
         }
     });
 }
@@ -65,23 +75,26 @@ window.showActorModal = async function (actorId = null) {
                 '<option value="">Seleccionar...</option>' +
                 countries
                     .map(
-                        (c) =>
-                            `<option value="${c.idPais}">${sanitizeInput(
-                                c.nombre
-                            )}</option>`
+                        (c) => {
+                            const id = c.idPais || c.IdPais;
+                            const nombre = c.nombre || c.Nombre || "";
+                            return `<option value="${id}">${sanitizeInput(nombre)}</option>`;
+                        }
                     )
                     .join("");
         }
 
         if (actorId) {
             const actor = await api.getActor(actorId);
+            console.log("Actor data received:", actor); // Debug
             document.getElementById("actor-modal-title").textContent =
                 "Editar Actor";
             document.getElementById("actor-id").value = actorId;
-            document.getElementById("actor-nombre").value = actor?.nombre || "";
+            document.getElementById("actor-nombre").value = actor?.nombre || actor?.Nombre || "";
             document.getElementById("actor-apellido").value =
-                actor?.apellido || "";
-            if (paisSelect) paisSelect.value = actor?.idPais || "";
+                actor?.apellido || actor?.Apellido || "";
+            const idPais = actor?.idPais || actor?.IdPais;
+            if (paisSelect) paisSelect.value = idPais || "";
         } else {
             document.getElementById("actor-modal-title").textContent =
                 "Agregar Actor";
