@@ -38,7 +38,7 @@ async function loadActorsCRUD() {
                                 actor.apellido
                             )}</td>
                             <td class="px-6 py-4">${
-                                actor.idPaisNavigation?.nombre || "N/A"
+                                actor.paisNombre || "N/A"
                             }</td>
                             <td class="px-6 py-4">
                                 <button onclick="editActor(${
@@ -75,4 +75,3 @@ window.deleteActor = async function (actorId) {
         }
     }
 };
-

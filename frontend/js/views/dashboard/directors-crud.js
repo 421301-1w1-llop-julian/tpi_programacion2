@@ -38,7 +38,7 @@ async function loadDirectorsCRUD() {
                                 director.apellido
                             )}</td>
                             <td class="px-6 py-4">${
-                                director.idPaisNavigation?.nombre || "N/A"
+                                director.paisNombre || "N/A"
                             }</td>
                             <td class="px-6 py-4">
                                 <button onclick="editDirector(${
@@ -79,4 +79,3 @@ window.deleteDirector = async function (id) {
 window.showDirectorModal = function () {
     showNotification("Modal de director en desarrollo", "info");
 };
-
