@@ -2,6 +2,7 @@
 using WebApplication1.Models;
 using WebApplication1.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace WebApplication1.Repositories
 {
@@ -96,6 +97,9 @@ namespace WebApplication1.Repositories
 
             if (pelicula == null) return null;
 
+            // Debug: Verificar que las relaciones se están cargando
+            Console.WriteLine($"GetByIdAsync - Pelicula {id}: Generos={pelicula.PeliculasGeneros.Count}, Idiomas={pelicula.PeliculasIdiomas.Count}, Actores={pelicula.PeliculasActores.Count}, Directores={pelicula.PeliculasDirectores.Count}");
+
             return new PeliculaDTO
             {
                 IdPelicula = pelicula.IdPelicula,
@@ -150,22 +154,36 @@ namespace WebApplication1.Repositories
             _context.Peliculas.Add(pelicula);
             await _context.SaveChangesAsync();
 
+            // Debug: Verificar qué se está recibiendo
+            Console.WriteLine($"CreateAsync - GeneroIds: {string.Join(", ", dto.GeneroIds ?? new List<int>())}");
+            Console.WriteLine($"CreateAsync - IdiomaIds: {string.Join(", ", dto.IdiomaIds ?? new List<int>())}");
+            Console.WriteLine($"CreateAsync - ActorIds: {string.Join(", ", dto.ActorIds ?? new List<int>())}");
+            Console.WriteLine($"CreateAsync - DirectorIds: {string.Join(", ", dto.DirectorIds ?? new List<int>())}");
+
             // Relaciones opcionales
-            if (dto.GeneroIds != null)
+            if (dto.GeneroIds != null && dto.GeneroIds.Any())
+            {
                 foreach (var id in dto.GeneroIds)
                     _context.PeliculasGeneros.Add(new PeliculasGenero { IdPelicula = pelicula.IdPelicula, IdGenero = id });
+            }
 
-            if (dto.IdiomaIds != null)
+            if (dto.IdiomaIds != null && dto.IdiomaIds.Any())
+            {
                 foreach (var id in dto.IdiomaIds)
                     _context.PeliculasIdiomas.Add(new PeliculasIdioma { IdPelicula = pelicula.IdPelicula, IdIdioma = id });
+            }
 
-            if (dto.ActorIds != null)
+            if (dto.ActorIds != null && dto.ActorIds.Any())
+            {
                 foreach (var id in dto.ActorIds)
                     _context.PeliculasActores.Add(new PeliculasActor { IdPelicula = pelicula.IdPelicula, IdActor = id });
+            }
 
-            if (dto.DirectorIds != null)
+            if (dto.DirectorIds != null && dto.DirectorIds.Any())
+            {
                 foreach (var id in dto.DirectorIds)
                     _context.PeliculasDirectores.Add(new PeliculasDirector { IdPelicula = pelicula.IdPelicula, IdDirector = id });
+            }
 
             await _context.SaveChangesAsync();
 
@@ -194,36 +212,57 @@ namespace WebApplication1.Repositories
             if (dto.IdDistribuidora.HasValue) pelicula.IdDistribuidora = dto.IdDistribuidora.Value;
             if (dto.IdTipoPublico.HasValue) pelicula.IdTipoPublico = dto.IdTipoPublico.Value;
 
-            // Actualizar relaciones
+            // Actualizar relaciones (siempre actualizar, incluso si la lista está vacía)
+            // Esto asegura que las relaciones se actualicen correctamente
+            Console.WriteLine($"UpdateAsync - GeneroIds: {string.Join(", ", dto.GeneroIds ?? new List<int>())}");
+            Console.WriteLine($"UpdateAsync - IdiomaIds: {string.Join(", ", dto.IdiomaIds ?? new List<int>())}");
+            Console.WriteLine($"UpdateAsync - ActorIds: {string.Join(", ", dto.ActorIds ?? new List<int>())}");
+            Console.WriteLine($"UpdateAsync - DirectorIds: {string.Join(", ", dto.DirectorIds ?? new List<int>())}");
+            
             if (dto.GeneroIds != null)
             {
                 _context.PeliculasGeneros.RemoveRange(pelicula.PeliculasGeneros);
-                foreach (var id in dto.GeneroIds)
-                    _context.PeliculasGeneros.Add(new PeliculasGenero { IdPelicula = pelicula.IdPelicula, IdGenero = id });
+                if (dto.GeneroIds.Any())
+                {
+                    foreach (var id in dto.GeneroIds)
+                        _context.PeliculasGeneros.Add(new PeliculasGenero { IdPelicula = pelicula.IdPelicula, IdGenero = id });
+                }
             }
 
             if (dto.IdiomaIds != null)
             {
                 _context.PeliculasIdiomas.RemoveRange(pelicula.PeliculasIdiomas);
-                foreach (var id in dto.IdiomaIds)
-                    _context.PeliculasIdiomas.Add(new PeliculasIdioma { IdPelicula = pelicula.IdPelicula, IdIdioma = id });
+                if (dto.IdiomaIds.Any())
+                {
+                    foreach (var id in dto.IdiomaIds)
+                        _context.PeliculasIdiomas.Add(new PeliculasIdioma { IdPelicula = pelicula.IdPelicula, IdIdioma = id });
+                }
             }
 
             if (dto.ActorIds != null)
             {
                 _context.PeliculasActores.RemoveRange(pelicula.PeliculasActores);
-                foreach (var id in dto.ActorIds)
-                    _context.PeliculasActores.Add(new PeliculasActor { IdPelicula = pelicula.IdPelicula, IdActor = id });
+                if (dto.ActorIds.Any())
+                {
+                    foreach (var id in dto.ActorIds)
+                        _context.PeliculasActores.Add(new PeliculasActor { IdPelicula = pelicula.IdPelicula, IdActor = id });
+                }
             }
 
             if (dto.DirectorIds != null)
             {
                 _context.PeliculasDirectores.RemoveRange(pelicula.PeliculasDirectores);
-                foreach (var id in dto.DirectorIds)
-                    _context.PeliculasDirectores.Add(new PeliculasDirector { IdPelicula = pelicula.IdPelicula, IdDirector = id });
+                if (dto.DirectorIds.Any())
+                {
+                    foreach (var id in dto.DirectorIds)
+                        _context.PeliculasDirectores.Add(new PeliculasDirector { IdPelicula = pelicula.IdPelicula, IdDirector = id });
+                }
             }
 
             await _context.SaveChangesAsync();
+            
+            // Recargar la película con todas sus relaciones para asegurar que los datos estén actualizados
+            _context.Entry(pelicula).State = Microsoft.EntityFrameworkCore.EntityState.Detached;
             return await GetByIdAsync(pelicula.IdPelicula);
         }
 
