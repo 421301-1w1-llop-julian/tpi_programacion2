@@ -183,117 +183,147 @@ window.showMovieModal = async function (movieId = null) {
 
         // Géneros (checkboxes)
         const generosContainer = document.getElementById("movie-generos");
+        const generoId = (g) => g.idGenero || g.IdGenero || g.id || g.Id;
         generosContainer.innerHTML = genres
             .map(
-                (g) =>
-                    `<label class="flex items-center space-x-2 cursor-pointer">
-                        <input type="checkbox" value="${g.idGenero}" class="rounded">
-                        <span>${sanitizeInput(g.nombre)}</span>
-                    </label>`
+                (g) => {
+                    const id = generoId(g);
+                    return `<label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" value="${id}" class="rounded">
+                        <span>${sanitizeInput(g.nombre || g.Nombre || "")}</span>
+                    </label>`;
+                }
             )
             .join("");
 
         // Idiomas (checkboxes)
         const idiomasContainer = document.getElementById("movie-idiomas");
+        const idiomaId = (l) => l.idIdioma || l.IdIdioma || l.id || l.Id;
         idiomasContainer.innerHTML = languages
             .map(
-                (l) =>
-                    `<label class="flex items-center space-x-2 cursor-pointer">
-                        <input type="checkbox" value="${l.idIdioma}" class="rounded">
-                        <span>${sanitizeInput(l.nombre)}</span>
-                    </label>`
+                (l) => {
+                    const id = idiomaId(l);
+                    return `<label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" value="${id}" class="rounded">
+                        <span>${sanitizeInput(l.nombre || l.Nombre || "")}</span>
+                    </label>`;
+                }
             )
             .join("");
 
         // Actores (checkboxes)
         const actoresContainer = document.getElementById("movie-actores");
+        const actorId = (a) => a.idActor || a.IdActor || a.id || a.Id;
         actoresContainer.innerHTML = actors
             .map(
-                (a) =>
-                    `<label class="flex items-center space-x-2 cursor-pointer">
-                        <input type="checkbox" value="${a.idActor}" class="rounded">
-                        <span>${sanitizeInput(a.nombre + " " + (a.apellido || ""))}</span>
-                    </label>`
+                (a) => {
+                    const id = actorId(a);
+                    const nombre = a.nombre || a.Nombre || "";
+                    const apellido = a.apellido || a.Apellido || "";
+                    return `<label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" value="${id}" class="rounded">
+                        <span>${sanitizeInput(nombre + " " + apellido)}</span>
+                    </label>`;
+                }
             )
             .join("");
 
         // Directores (checkboxes)
         const directoresContainer = document.getElementById("movie-directores");
+        const directorId = (d) => d.idDirector || d.IdDirector || d.id || d.Id;
         directoresContainer.innerHTML = directors
             .map(
-                (d) =>
-                    `<label class="flex items-center space-x-2 cursor-pointer">
-                        <input type="checkbox" value="${d.idDirector}" class="rounded">
-                        <span>${sanitizeInput(d.nombre + " " + (d.apellido || ""))}</span>
-                    </label>`
+                (d) => {
+                    const id = directorId(d);
+                    const nombre = d.nombre || d.Nombre || "";
+                    const apellido = d.apellido || d.Apellido || "";
+                    return `<label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" value="${id}" class="rounded">
+                        <span>${sanitizeInput(nombre + " " + apellido)}</span>
+                    </label>`;
+                }
             )
             .join("");
 
         if (movieId) {
             const movie = await api.getMovie(movieId);
+            console.log("Movie data received:", movie); // Debug
+            
             document.getElementById("movie-modal-title").textContent =
                 "Editar Película";
             document.getElementById("movie-id").value = movieId;
-            document.getElementById("movie-nombre").value = movie.nombre || "";
+            document.getElementById("movie-nombre").value = movie.nombre || movie.Nombre || "";
             document.getElementById("movie-descripcion").value =
-                movie.descripcion || "";
-            document.getElementById("movie-imagen").value = movie.imagen || "";
+                movie.descripcion || movie.Descripcion || "";
+            document.getElementById("movie-imagen").value = movie.imagen || movie.Imagen || "";
             document.getElementById("movie-duracion").value =
-                movie.duracion || "";
+                movie.duracion || movie.Duracion || "";
+            
+            const fechaEstreno = movie.fechaEstreno || movie.FechaEstreno;
             document.getElementById("movie-fecha-estreno").value =
-                movie.fechaEstreno
-                    ? new Date(movie.fechaEstreno).toISOString().split("T")[0]
-                    : "";
-            clasificacionSelect.value = movie.idClasificacion || "";
-            paisSelect.value = movie.idPais || "";
-            distribuidoraSelect.value = movie.idDistribuidora || "";
-            tipoPublicoSelect.value = movie.idTipoPublico || "";
+                fechaEstreno ? new Date(fechaEstreno).toISOString().split("T")[0] : "";
+            
+            const idClasificacion = movie.idClasificacion || movie.IdClasificacion;
+            const idPais = movie.idPais || movie.IdPais;
+            const idDistribuidora = movie.idDistribuidora || movie.IdDistribuidora;
+            const idTipoPublico = movie.idTipoPublico || movie.IdTipoPublico;
+            
+            clasificacionSelect.value = idClasificacion || "";
+            paisSelect.value = idPais || "";
+            distribuidoraSelect.value = idDistribuidora || "";
+            tipoPublicoSelect.value = idTipoPublico || "";
+            
+            // Función helper para marcar checkboxes
+            const markCheckboxes = (container, selectedIds, typeName) => {
+                if (!container) {
+                    console.warn(`${typeName} container not found`);
+                    return;
+                }
+                
+                // Obtener todos los checkboxes disponibles
+                const allCheckboxes = Array.from(container.querySelectorAll('input[type="checkbox"]'));
+                console.log(`${typeName} - Available checkbox values:`, allCheckboxes.map(cb => cb.value));
+                
+                if (!Array.isArray(selectedIds) || selectedIds.length === 0) {
+                    console.log(`${typeName} - No IDs to mark`);
+                    return;
+                }
+                
+                console.log(`${typeName} - IDs to mark:`, selectedIds);
+                
+                // Marcar los checkboxes correspondientes
+                selectedIds.forEach(id => {
+                    const idStr = String(id);
+                    // Buscar el checkbox por valor exacto
+                    const checkbox = allCheckboxes.find(cb => cb.value === idStr);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                        console.log(`✓ Marked ${typeName} checkbox with value: ${idStr}`);
+                    } else {
+                        console.warn(`✗ Checkbox not found for ${typeName} ID: ${idStr}`);
+                    }
+                });
+            };
+            
+            // Esperar un momento para asegurar que los checkboxes estén en el DOM
+            await new Promise(resolve => setTimeout(resolve, 50));
             
             // Marcar géneros seleccionados usando los IDs
             // El backend devuelve generoIds (camelCase) o GeneroIds (PascalCase)
             const generoIds = movie.generoIds || movie.GeneroIds || [];
-            if (Array.isArray(generoIds) && generoIds.length > 0) {
-                generoIds.forEach(id => {
-                    // Convertir a string para comparar con el value del checkbox (que es string)
-                    const checkbox = generosContainer.querySelector(`input[value="${String(id)}"]`);
-                    if (checkbox) {
-                        checkbox.checked = true;
-                    }
-                });
-            }
+            markCheckboxes(generosContainer, generoIds, "Genero");
             
             // Marcar idiomas seleccionados
             const idiomaIds = movie.idiomaIds || movie.IdiomaIds || [];
-            if (Array.isArray(idiomaIds) && idiomaIds.length > 0) {
-                idiomaIds.forEach(id => {
-                    const checkbox = idiomasContainer.querySelector(`input[value="${String(id)}"]`);
-                    if (checkbox) {
-                        checkbox.checked = true;
-                    }
-                });
-            }
+            markCheckboxes(idiomasContainer, idiomaIds, "Idioma");
             
             // Marcar actores seleccionados
             const actorIds = movie.actorIds || movie.ActorIds || [];
-            if (Array.isArray(actorIds) && actorIds.length > 0) {
-                actorIds.forEach(id => {
-                    const checkbox = actoresContainer.querySelector(`input[value="${String(id)}"]`);
-                    if (checkbox) {
-                        checkbox.checked = true;
-                    }
-                });
-            }
+            markCheckboxes(actoresContainer, actorIds, "Actor");
             
             // Marcar directores seleccionados
             const directorIds = movie.directorIds || movie.DirectorIds || [];
-            if (Array.isArray(directorIds) && directorIds.length > 0) {
-                directorIds.forEach(id => {
-                    const checkbox = directoresContainer.querySelector(`input[value="${String(id)}"]`);
-                    if (checkbox) {
-                        checkbox.checked = true;
-                    }
-                });
-            }
+            markCheckboxes(directoresContainer, directorIds, "Director");
         } else {
             document.getElementById("movie-modal-title").textContent =
                 "Agregar Película";
