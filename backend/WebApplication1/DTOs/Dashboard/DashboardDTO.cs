@@ -69,6 +69,8 @@ public class FiltrosDashboardDTO
     public bool? SoloPeliculasMasVistas { get; set; }
     public int? Pagina { get; set; }
     public int? TamañoPagina { get; set; }
+    public decimal? MontoMinimo { get; set; }
+    public decimal? MontoMaximo { get; set; }
 }
 
 public class RespuestaPaginadaDTO<T>

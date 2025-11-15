@@ -272,20 +272,50 @@ public class DashboardRepository : IDashboardRepository
             query = query.Where(c => c.DetallesCompras.Any(dc => dc.IdFuncionNavigation != null && dc.IdFuncionNavigation.IdPelicula == filtros.IdPelicula.Value));
         }
 
-        // Ordenar por fecha de compra descendente
-        query = query.OrderByDescending(c => c.FechaCompra);
+        // Aplicar filtros de monto basándose en el total de la compra
+        // Primero necesitamos calcular el total para cada compra y luego filtrar
+        // Para hacer esto eficientemente, primero obtenemos todas las compras que cumplen los otros filtros
+        var comprasConTotales = await query.ToListAsync();
+        
+        // Calcular el total para cada compra y aplicar filtros de monto
+        var comprasFiltradas = comprasConTotales
+            .Select(c => new
+            {
+                Compra = c,
+                Total = c.DetallesCompras.Sum(dc => dc.PrecioUnitario * dc.Cantidad)
+            })
+            .Where(x => 
+                (!filtros.MontoMinimo.HasValue || x.Total >= filtros.MontoMinimo.Value) &&
+                (!filtros.MontoMaximo.HasValue || x.Total <= filtros.MontoMaximo.Value)
+            )
+            .Select(x => x.Compra)
+            .OrderByDescending(c => c.FechaCompra)
+            .ToList();
 
-        // Obtener total de registros
-        var totalRegistros = await query.CountAsync();
+        // Obtener total de registros después de aplicar todos los filtros
+        var totalRegistros = comprasFiltradas.Count;
 
         // Aplicar paginación
         int pagina = filtros.Pagina ?? 1;
         int tamañoPagina = filtros.TamañoPagina ?? 10;
         
-        var compras = await query
+        // Calcular total de páginas
+        var totalPaginas = totalRegistros > 0 ? (int)Math.Ceiling(totalRegistros / (double)tamañoPagina) : 1;
+        
+        // Validar que la página solicitada no exceda el total de páginas
+        if (pagina > totalPaginas && totalPaginas > 0)
+        {
+            pagina = totalPaginas;
+        }
+        if (pagina < 1)
+        {
+            pagina = 1;
+        }
+        
+        var compras = comprasFiltradas
             .Skip((pagina - 1) * tamañoPagina)
             .Take(tamañoPagina)
-            .ToListAsync();
+            .ToList();
 
         var comprasDTO = compras.Select(c => new CompraDTO
         {
@@ -300,8 +330,6 @@ public class DashboardRepository : IDashboardRepository
             Total = c.DetallesCompras.Sum(dc => dc.PrecioUnitario * dc.Cantidad),
             Pelicula = c.DetallesCompras.FirstOrDefault(dc => dc.IdFuncionNavigation != null)?.IdFuncionNavigation?.IdPeliculaNavigation?.Nombre ?? "N/A"
         }).ToList();
-
-        var totalPaginas = (int)Math.Ceiling(totalRegistros / (double)tamañoPagina);
 
         return new RespuestaPaginadaDTO<CompraDTO>
         {

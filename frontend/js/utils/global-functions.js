@@ -14,10 +14,12 @@ window.applyAnalyticsFilters = async function (pagina = 1, actualizarMetricas = 
     const montoMinimo = parseFloat(document.getElementById("filter-amount-min")?.value) || null;
     const montoMaximo = parseFloat(document.getElementById("filter-amount-max")?.value) || null;
 
-    // Build backend filters
+    // Build backend filters (incluyendo filtros de monto)
     const backendFilters = {};
     if (fechaInicio) backendFilters.fechaDesde = fechaInicio;
     if (fechaFin) backendFilters.fechaHasta = fechaFin;
+    if (montoMinimo !== null) backendFilters.montoMinimo = montoMinimo;
+    if (montoMaximo !== null) backendFilters.montoMaximo = montoMaximo;
 
     // Actualizar página actual
     window.currentPage = pagina;
@@ -55,19 +57,10 @@ window.applyAnalyticsFilters = async function (pagina = 1, actualizarMetricas = 
             let totalVendido, funcionesVendidas, entradasVendidas, promedioPorFuncion;
 
             if (hasAmountFilters && comprasCompletas) {
-                // Aplicar filtros de monto a todas las compras
-                let filteredCompras = comprasCompletas;
-                if (montoMinimo !== null) {
-                    filteredCompras = filteredCompras.filter(c => (c.total || c.Total || 0) >= montoMinimo);
-                }
-                if (montoMaximo !== null) {
-                    filteredCompras = filteredCompras.filter(c => (c.total || c.Total || 0) <= montoMaximo);
-                }
-
                 // Calcular métricas basadas en todas las compras filtradas
-                totalVendido = filteredCompras.reduce((sum, c) => sum + (c.total || c.Total || 0), 0);
-                funcionesVendidas = filteredCompras.length; // Aproximación
-                entradasVendidas = filteredCompras.length; // Aproximación
+                totalVendido = comprasCompletas.reduce((sum, c) => sum + (c.total || c.Total || 0), 0);
+                funcionesVendidas = comprasCompletas.length; // Aproximación
+                entradasVendidas = comprasCompletas.length; // Aproximación
                 promedioPorFuncion = funcionesVendidas > 0 ? totalVendido / funcionesVendidas : 0;
             } else {
                 // Usar valores del endpoint de analytics (totales completos)
@@ -87,20 +80,18 @@ window.applyAnalyticsFilters = async function (pagina = 1, actualizarMetricas = 
             });
         }
 
-        // Aplicar filtros de monto solo a las compras de la página actual para mostrar
-        let filteredCompras = compras || [];
-        if (hasAmountFilters) {
-            if (montoMinimo !== null) {
-                filteredCompras = filteredCompras.filter(c => (c.total || c.Total || 0) >= montoMinimo);
-            }
-            if (montoMaximo !== null) {
-                filteredCompras = filteredCompras.filter(c => (c.total || c.Total || 0) <= montoMaximo);
-            }
+        // Validar que la página actual no exceda el total de páginas
+        const paginaValida = Math.min(paginaActual, totalPaginas);
+        
+        // Si la página solicitada excede el total, recargar con la última página válida
+        if (paginaActual > totalPaginas && totalPaginas > 0) {
+            await applyAnalyticsFilters(totalPaginas, false);
+            return;
         }
 
-        // Display sales list with pagination
-        displaySalesList(filteredCompras, {
-            paginaActual: paginaActual,
+        // Display sales list with pagination (ya no necesitamos filtrar en frontend, el backend lo hace)
+        displaySalesList(compras, {
+            paginaActual: paginaValida,
             totalPaginas: totalPaginas,
             totalRegistros: totalCompras
         });
@@ -155,33 +146,37 @@ window.displaySalesList = function(compras, paginacion = null) {
     });
     
     let paginacionHTML = "";
-    if (paginacion && paginacion.totalPaginas > 1) {
+    if (paginacion && paginacion.totalPaginas > 0) {
         const { paginaActual, totalPaginas } = paginacion;
-        paginacionHTML = `
-            <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-700">
-                <div class="text-sm text-gray-400">
-                    Página ${paginaActual} de ${totalPaginas}
+        const mostrarPaginacion = totalPaginas > 1 || paginaActual > 1;
+        
+        if (mostrarPaginacion) {
+            paginacionHTML = `
+                <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-700">
+                    <div class="text-sm text-gray-400">
+                        Página ${paginaActual} de ${totalPaginas} ${paginacion.totalRegistros ? `(${paginacion.totalRegistros} registros)` : ''}
+                    </div>
+                    <div class="flex gap-2">
+                        <button 
+                            onclick="applyAnalyticsFilters(${Math.max(1, paginaActual - 1)}, false)"
+                            ${paginaActual <= 1 ? 'disabled' : ''}
+                            class="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600 transition text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                            ${paginaActual <= 1 ? 'style="pointer-events: none;"' : ''}
+                        >
+                            Anterior
+                        </button>
+                        <button 
+                            onclick="applyAnalyticsFilters(${Math.min(totalPaginas, paginaActual + 1)}, false)"
+                            ${paginaActual >= totalPaginas ? 'disabled' : ''}
+                            class="px-4 py-2 bg-cine-red rounded hover:bg-red-700 transition text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                            ${paginaActual >= totalPaginas ? 'style="pointer-events: none;"' : ''}
+                        >
+                            Siguiente
+                        </button>
+                    </div>
                 </div>
-                <div class="flex gap-2">
-                    <button 
-                        onclick="applyAnalyticsFilters(${paginaActual - 1}, false)"
-                        ${paginaActual <= 1 ? 'disabled' : ''}
-                        class="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600 transition text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                        ${paginaActual <= 1 ? 'style="pointer-events: none;"' : ''}
-                    >
-                        Anterior
-                    </button>
-                    <button 
-                        onclick="applyAnalyticsFilters(${paginaActual + 1}, false)"
-                        ${paginaActual >= totalPaginas ? 'disabled' : ''}
-                        class="px-4 py-2 bg-cine-red rounded hover:bg-red-700 transition text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                        ${paginaActual >= totalPaginas ? 'style="pointer-events: none;"' : ''}
-                    >
-                        Siguiente
-                    </button>
-                </div>
-            </div>
-        `;
+            `;
+        }
     }
     
     salesListContainer.innerHTML = `

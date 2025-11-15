@@ -192,6 +192,14 @@ const api = {
         if (filters.idPelicula) params.append("idPelicula", filters.idPelicula);
         if (filters.idCliente) params.append("idCliente", filters.idCliente);
         
+        // Agregar filtros de monto
+        if (filters.montoMinimo !== undefined && filters.montoMinimo !== null) {
+            params.append("MontoMinimo", filters.montoMinimo.toString());
+        }
+        if (filters.montoMaximo !== undefined && filters.montoMaximo !== null) {
+            params.append("MontoMaximo", filters.montoMaximo.toString());
+        }
+        
         // Agregar parámetros de paginación solo si se proporcionan
         if (pagina !== null) {
             params.append("Pagina", pagina.toString());
