@@ -63,10 +63,8 @@ async function movieSeatsViewHandler(params, queryParams) {
             updateSeatsDisplay();
             updateTotalPrice();
             updateQuantityButtonsState();
-            if (typeof updateContinueButton === 'function') {
-                updateContinueButton();
-            } else if (typeof window.updateContinueButton === 'function') {
-                window.updateContinueButton();
+            if (typeof updateSeatsContinueButton === 'function') {
+                updateSeatsContinueButton();
             }
         };
 
@@ -343,13 +341,11 @@ window.toggleSeat = function (seatId, row, number) {
         shouldEnable: selectedSeats.length === ticketQuantity && ticketQuantity > 0 && selectedSeats.length > 0
     });
     try {
-        console.log("Calling updateContinueButton, function exists:", typeof updateContinueButton);
-        if (typeof updateContinueButton === 'function') {
-            updateContinueButton();
-        } else if (typeof window.updateContinueButton === 'function') {
-            window.updateContinueButton();
+        console.log("Calling updateSeatsContinueButton, function exists:", typeof updateSeatsContinueButton);
+        if (typeof updateSeatsContinueButton === 'function') {
+            updateSeatsContinueButton();
         } else {
-            console.error("updateContinueButton is not a function!");
+            console.error("updateSeatsContinueButton is not a function!");
         }
         console.log("updateContinueButton call completed");
     } catch (error) {
@@ -430,16 +426,16 @@ function updateQuantityButtonsState() {
     }
 }
 
-// Make updateContinueButton globally accessible
-window.updateContinueButton = function() {
-    console.log("updateContinueButton function STARTED");
+// Make updateContinueButton globally accessible with a unique name
+function updateSeatsContinueButton() {
+    console.log("updateSeatsContinueButton function STARTED");
     console.log("Current state:", { selectedSeats: selectedSeats.length, ticketQuantity });
     
     const continueBtn = document.getElementById("continue-seats-btn");
     console.log("Button lookup result:", continueBtn);
     
     if (!continueBtn) {
-        console.warn("Continue button not found in updateContinueButton");
+        console.warn("Continue button not found in updateSeatsContinueButton");
         return;
     }
 
@@ -448,7 +444,7 @@ window.updateContinueButton = function() {
         ticketQuantity > 0 &&
         selectedSeats.length > 0;
 
-    console.log("updateContinueButton called:", {
+    console.log("updateSeatsContinueButton called:", {
         selectedSeats: selectedSeats.length,
         ticketQuantity,
         shouldEnable,
