@@ -167,8 +167,6 @@ function renderMoviesGrid(movies) {
         return;
     }
 
-    console.log(movies);
-
     grid.innerHTML = movies
         .map(
             (movie) => `
@@ -196,4 +194,3 @@ function renderMoviesGrid(movies) {
         )
         .join("");
 }
-
