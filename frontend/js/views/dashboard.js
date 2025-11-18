@@ -111,25 +111,23 @@ async function dashboardViewHandler() {
         console.log("Analytics data:", analytics);
         console.log("Compras data:", comprasResponse);
 
-        // La respuesta ahora es un objeto paginado
         const compras = comprasResponse.datos || comprasResponse.Datos || [];
-        const totalCompras =
-            comprasResponse.totalRegistros ||
-            comprasResponse.TotalRegistros ||
-            0;
-        const totalPaginas =
-            comprasResponse.totalPaginas || comprasResponse.TotalPaginas || 1;
+
         const paginaActual =
             comprasResponse.paginaActual || comprasResponse.PaginaActual || 1;
+        const totalPaginas =
+            comprasResponse.totalPaginas || comprasResponse.TotalPaginas || 1;
+        // La paginación depende de que totalRegistros sea > 0
+        const totalRegistros =
+            comprasResponse.totalRegistros ||
+            comprasResponse.totalRegistros ||
+            0;
 
-        // Calculate metrics usando valores del analytics (totales completos)
-        const totalVendido =
-            analytics.ingresosTotales || analytics.IngresosTotales || 0;
-
-        // Usar el total de compras del analytics o del total de registros paginados
-        const entradasVendidas =
-            analytics.totalCompras || analytics.TotalCompras || totalCompras;
-
+        displaySalesList(compras, {
+            paginaActual: paginaActual,
+            totalPaginas: totalPaginas,
+            totalRegistros: totalRegistros,
+        });
         // Update analytics cards
         cardsContainer.innerHTML = `
             <div class="bg-cine-gray rounded-lg p-6 shadow-lg">
@@ -162,7 +160,7 @@ async function dashboardViewHandler() {
         displaySalesList(compras, {
             paginaActual: paginaActual,
             totalPaginas: totalPaginas,
-            totalRegistros: totalCompras,
+            totalRegistros: totalRegistros,
         });
     } catch (error) {
         console.error("Error loading dashboard:", error);

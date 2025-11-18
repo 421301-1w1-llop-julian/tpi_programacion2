@@ -175,6 +175,24 @@ const api = {
         if (filters.idCliente) params.append("idCliente", filters.idCliente);
         if (filters.idSala) params.append("idSala", filters.idSala);
 
+        // Agregar filtros de monto
+        if (
+            filters.montoMinimo !== undefined &&
+            filters.montoMinimo !== null &&
+            !isNaN(filters.montoMinimo)
+        ) {
+            params.append("MontoMinimo", filters.montoMinimo.toString());
+            console.log("Enviando MontoMinimo:", filters.montoMinimo);
+        }
+        if (
+            filters.montoMaximo !== undefined &&
+            filters.montoMaximo !== null &&
+            !isNaN(filters.montoMaximo)
+        ) {
+            params.append("MontoMaximo", filters.montoMaximo.toString());
+            console.log("Enviando MontoMaximo:", filters.montoMaximo);
+        }
+
         const response = await fetch(`${API_BASE_URL}/Dashboard?${params}`, {
             headers: getHeaders(),
         });
