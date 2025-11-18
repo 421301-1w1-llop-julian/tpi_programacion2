@@ -308,10 +308,18 @@ window.toggleSeat = function (seatId, row, number) {
         });
     }
 
-    // Update summary
+    // Update summary immediately when seat is selected/deselected
     updateSeatsDisplay();
     updateTotalPrice();
     updateContinueButton();
+    
+    // Re-render summary to ensure all information is up to date
+    if (currentSeatsMovie && currentSeatsFunction) {
+        renderSummary(currentSeatsMovie, currentSeatsFunction);
+        // After re-rendering, update the seats display again since renderSummary recreates the element
+        updateSeatsDisplay();
+        updateTotalPrice();
+    }
 };
 
 function updateSeatsDisplay() {
