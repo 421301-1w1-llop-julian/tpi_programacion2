@@ -37,8 +37,11 @@ namespace WebApplication1.Repositories
 
         public async Task<IEnumerable<Producto>> GetAllAsync()
         {
-            return await _context.Productos.ToListAsync();
+            return await _context.Productos
+                .Include(p => p.IdTipoProductoNavigation) // <-- Trae también el tipo de producto
+                .ToListAsync();
         }
+
 
         public async Task<Producto> GetByIdAsync(int id)
         {

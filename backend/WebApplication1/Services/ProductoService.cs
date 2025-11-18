@@ -59,7 +59,8 @@ namespace WebApplication1.Services
                 Descripcion = t.Descripcion,
                 Precio = t.Precio,
                 IdTipoProducto = t.IdTipoProducto,
-                Imagen = t.Imagen
+                Imagen = t.Imagen,
+                TipoProducto = t.IdTipoProductoNavigation.Nombre
             });
         }
 

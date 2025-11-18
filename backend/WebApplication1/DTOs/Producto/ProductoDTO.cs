@@ -10,5 +10,6 @@ namespace WebApplication1.DTOs.Producto
         public string Imagen { get; set; }
         public decimal Precio { get; set; }
         public int IdTipoProducto { get; set; }
+        public string TipoProducto { get; set; }
     }
 }
