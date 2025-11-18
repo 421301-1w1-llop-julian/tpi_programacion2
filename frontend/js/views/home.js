@@ -1,22 +1,10 @@
 // Home View Handler
 async function homeViewHandler() {
-    console.log("Iniciando homeViewHandler");
-
-    console.log("Verificando elementos del DOM...");
-
     let errorMessage = document.getElementById("api-error-message");
     let noMoviesMessage = document.getElementById("no-movies-message");
     let carouselContainer = document.getElementById("carousel-container");
     let carouselTrack = document.getElementById("carousel-track");
     let carouselDots = document.getElementById("carousel-dots");
-
-    console.log("Estado de los elementos:", {
-        errorMessage: !!errorMessage,
-        noMoviesMessage: !!noMoviesMessage,
-        carouselContainer: !!carouselContainer,
-        carouselTrack: !!carouselTrack,
-        carouselDots: !!carouselDots,
-    });
 
     if (!carouselContainer || !carouselTrack) {
         console.error("Required carousel elements not found");
@@ -24,7 +12,6 @@ async function homeViewHandler() {
     }
 
     if (!carouselDots) {
-        console.log("Creando elemento carousel-dots...");
         let dotsContainer = document.createElement("div");
         dotsContainer.id = "carousel-dots";
         dotsContainer.className = "flex justify-center mt-4 space-x-2";
@@ -38,9 +25,7 @@ async function homeViewHandler() {
     let movies = [];
 
     try {
-        console.log("Intentando obtener películas de la API...");
         movies = await api.getMovies();
-        console.log("Películas obtenidas:", movies);
 
         if (!movies || movies.length === 0) {
             noMoviesMessage?.classList.remove("hidden");
@@ -87,11 +72,6 @@ async function homeViewHandler() {
             carouselTrack.appendChild(item);
         });
 
-        console.log(
-            "Items del carrusel creados:",
-            carouselTrack.children.length
-        );
-
         if (movies.length > 1) {
             carouselDots.innerHTML = ""; // limpiar
 
@@ -104,8 +84,6 @@ async function homeViewHandler() {
                 carouselDots.appendChild(dot);
             });
 
-            console.log("Dots creados:", carouselDots.children.length);
-
             // Inicializar carrusel cuando ya existe todo
             initCarousel();
         }
@@ -116,17 +94,10 @@ async function homeViewHandler() {
 }
 
 function initCarousel() {
-    console.log("Inicializando carrusel...");
     let currentIndex = 0;
     const items = document.querySelectorAll(".carousel-item");
     const dots = document.querySelectorAll(".carousel-dot");
     const track = document.getElementById("carousel-track");
-
-    console.log("Elementos encontrados:", {
-        items: items.length,
-        dots: dots.length,
-        track: !!track,
-    });
 
     if (!track || items.length === 0 || dots.length === 0) {
         console.error("Faltan elementos necesarios para el carrusel");
@@ -134,7 +105,6 @@ function initCarousel() {
     }
 
     function showSlide(index) {
-        console.log(`Mostrando slide ${index}`);
         // Actualizar la posición del track
         track.style.transform = `translateX(-${index * 100}%)`;
 
@@ -173,4 +143,3 @@ function initCarousel() {
         showSlide(currentIndex);
     }, 5000);
 }
-
