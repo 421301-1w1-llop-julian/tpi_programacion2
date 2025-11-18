@@ -37,15 +37,12 @@ public class DashboardController : ControllerBase
     /// <summary>
     /// Obtiene las películas más vistas con filtros opcionales
     /// </summary>
-    [HttpGet("peliculas-mas-vistas")]
-    public async Task<IActionResult> ObtenerPeliculasMasVistas(
-        [FromQuery] int? top = null,
-        [FromQuery] DateTime? fechaDesde = null,
-        [FromQuery] DateTime? fechaHasta = null)
+    [HttpGet("pelicula-mas-vista")]
+    public async Task<IActionResult> ObtenerPeliculaMasVistaAsync([FromQuery] FiltrosDashboardDTO filtros)
     {
         try
         {
-            var peliculas = await _dashboardService.ObtenerPeliculasMasVistasAsync(top, fechaDesde, fechaHasta);
+            var peliculas = await _dashboardService.ObtenerPeliculaMasVistaAsync(filtros);
             return Ok(peliculas);
         }
         catch (Exception ex)
@@ -54,22 +51,6 @@ public class DashboardController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Obtiene todas las reservas con filtros opcionales
-    /// </summary>
-    [HttpGet("reservas")]
-    public async Task<IActionResult> ObtenerReservas([FromQuery] FiltrosDashboardDTO filtros)
-    {
-        try
-        {
-            var dashboard = await _dashboardService.ObtenerDashboardAsync(filtros);
-            return Ok(dashboard.Reservas);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { error = "Error al obtener las reservas", message = ex.Message });
-        }
-    }
 
     /// <summary>
     /// Obtiene todas las compras con filtros opcionales y paginación
@@ -95,21 +76,5 @@ public class DashboardController : ControllerBase
     }
 
 
-    /// <summary>
-    /// Obtiene todas las funciones con filtros opcionales
-    /// </summary>
-    [HttpGet("funciones")]
-    public async Task<IActionResult> ObtenerFunciones([FromQuery] FiltrosDashboardDTO filtros)
-    {
-        try
-        {
-            var dashboard = await _dashboardService.ObtenerDashboardAsync(filtros);
-            return Ok(dashboard.Funciones);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { error = "Error al obtener las funciones", message = ex.Message });
-        }
-    }
 }
 

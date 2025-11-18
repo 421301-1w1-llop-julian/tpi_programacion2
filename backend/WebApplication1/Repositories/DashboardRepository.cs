@@ -19,59 +19,62 @@ public class DashboardRepository : IDashboardRepository
         var dashboard = new DashboardDTO();
 
         // Obtener estadísticas generales
-        dashboard.TotalReservas = await ObtenerTotalReservasAsync(filtros);
-        dashboard.TotalCompras = await ObtenerTotalComprasAsync(filtros);
-        dashboard.TotalFunciones = await ObtenerTotalFuncionesAsync(filtros);
-        dashboard.TotalPeliculas = await _context.Peliculas.CountAsync();
         dashboard.IngresosTotales = await ObtenerIngresosTotalesAsync(filtros);
-
-        // Obtener películas más vistas
-        int top = filtros.TopPeliculas ?? 10;
-        dashboard.PeliculasMasVistas = await ObtenerPeliculasMasVistasAsync(
-            top,
-            filtros.FechaDesde,
-            filtros.FechaHasta
-        );
-
-        // Si solo se piden películas más vistas, no cargar otros datos
-        if (filtros.SoloPeliculasMasVistas == true)
-        {
-            return dashboard;
-        }
-
-        // Obtener listas detalladas
-        dashboard.Reservas = await ObtenerReservasAsync(filtros);
-        dashboard.Compras = await ObtenerComprasAsync(filtros);
-        dashboard.Funciones = await ObtenerFuncionesAsync(filtros);
+        dashboard.PeliculaMasVista = await ObtenerPeliculaMasVistaAsync(filtros);
+        dashboard.EntradasVendidas = await ObtenerTotalEntradasVendidasAsync(filtros);
+        dashboard.IngresoPromedioFuncion = await ObtenerIngresoPromedioPorFuncionAsync(filtros);
 
         return dashboard;
     }
 
-    public async Task<List<PeliculaVistaDTO>> ObtenerPeliculasMasVistasAsync(
-        int? top = null,
-        DateTime? fechaDesde = null,
-        DateTime? fechaHasta = null)
+
+    public async Task<PeliculaVistaDTO> ObtenerPeliculaMasVistaAsync(FiltrosDashboardDTO filtros)
     {
         var query = _context.DetallesCompras
             .Include(dc => dc.IdCompraNavigation)
             .Include(dc => dc.IdFuncionNavigation)
-            .ThenInclude(f => f.IdPeliculaNavigation)
+                .ThenInclude(f => f.IdPeliculaNavigation)
             .Where(dc => dc.IdFuncionNavigation != null)
             .AsQueryable();
 
-        if (fechaDesde.HasValue)
-        {
+        // --- Mismos filtros que ObtenerComprasPaginadasAsync ---
+
+        if (filtros.FechaDesde.HasValue)
             query = query.Where(dc =>
-                dc.IdCompraNavigation.FechaCompra >= fechaDesde.Value);
+                dc.IdCompraNavigation.FechaCompra >= filtros.FechaDesde.Value);
+
+        if (filtros.FechaHasta.HasValue)
+            query = query.Where(dc =>
+                dc.IdCompraNavigation.FechaCompra <= filtros.FechaHasta.Value);
+
+        if (filtros.IdCliente.HasValue)
+            query = query.Where(dc =>
+                dc.IdCompraNavigation.IdCliente == filtros.IdCliente.Value);
+
+        if (filtros.IdPelicula.HasValue)
+            query = query.Where(dc =>
+                dc.IdFuncionNavigation.IdPelicula == filtros.IdPelicula.Value);
+
+        // --- Filtro por monto requiere agrupar por compra ---
+        if (filtros.MontoMinimo.HasValue || filtros.MontoMaximo.HasValue)
+        {
+            query =
+                from dc in query
+                where (
+                    from dc2 in _context.DetallesCompras
+                    where dc2.IdCompra == dc.IdCompra
+                    group dc2 by dc2.IdCompra into g
+                    where (!filtros.MontoMinimo.HasValue
+                            || g.Sum(x => x.PrecioUnitario * x.Cantidad) >= filtros.MontoMinimo.Value)
+                       && (!filtros.MontoMaximo.HasValue
+                            || g.Sum(x => x.PrecioUnitario * x.Cantidad) <= filtros.MontoMaximo.Value)
+                    select g.Key
+                ).Contains(dc.IdCompra)
+                select dc;
         }
 
-        if (fechaHasta.HasValue)
-        {
-            query = query.Where(dc =>
-                dc.IdCompraNavigation.FechaCompra <= fechaHasta.Value);
-        }
-
-        var peliculas = await query
+        // --- Agrupar por película y obtener solo la más vista ---
+        var pelicula = await query
             .GroupBy(dc => new
             {
                 dc.IdFuncionNavigation.IdPelicula,
@@ -85,13 +88,17 @@ public class DashboardRepository : IDashboardRepository
                 IngresosTotales = g.Sum(dc => dc.PrecioUnitario * dc.Cantidad)
             })
             .OrderByDescending(p => p.TotalCompras)
-            .ToListAsync();
+            .FirstOrDefaultAsync();   // ⬅ SOLO UNA
 
-        if (top.HasValue)
-            peliculas = peliculas.Take(top.Value).ToList();
-
-        return peliculas;
+        return pelicula ?? new PeliculaVistaDTO
+        {
+            IdPelicula = 0,
+            Nombre = "N/A",
+            TotalCompras = 0,
+            IngresosTotales = 0
+        };
     }
+
 
     public async Task<List<ReservaDTO>> ObtenerReservasAsync(FiltrosDashboardDTO filtros)
     {
@@ -379,45 +386,51 @@ public class DashboardRepository : IDashboardRepository
         return await query.CountAsync();
     }
 
-    private async Task<int> ObtenerTotalComprasAsync(FiltrosDashboardDTO filtros)
+    private async Task<decimal> ObtenerIngresosTotalesAsync(FiltrosDashboardDTO filtros)
     {
-        IQueryable<Compra> query = _context.Compras;
+        var query = _context
+            .Compras
+            .Include(c => c.DetallesCompras)
+            .ThenInclude(dc => dc.IdFuncionNavigation)
+            .AsQueryable();
 
-        if (filtros.IdPelicula.HasValue)
-        {
-            query = _context
-                .Compras.Include(c => c.DetallesCompras)
-                .ThenInclude(dc => dc.IdFuncionNavigation)
-                .AsQueryable();
-        }
-
+        // --- Filtros SQL ---
         if (filtros.FechaDesde.HasValue)
-        {
             query = query.Where(c => c.FechaCompra >= filtros.FechaDesde.Value);
-        }
 
         if (filtros.FechaHasta.HasValue)
-        {
             query = query.Where(c => c.FechaCompra <= filtros.FechaHasta.Value);
-        }
 
         if (filtros.IdCliente.HasValue)
-        {
             query = query.Where(c => c.IdCliente == filtros.IdCliente.Value);
-        }
 
         if (filtros.IdPelicula.HasValue)
-        {
             query = query.Where(c =>
                 c.DetallesCompras.Any(dc =>
-                    dc.IdFuncionNavigation != null
-                    && dc.IdFuncionNavigation.IdPelicula == filtros.IdPelicula.Value
+                    dc.IdFuncionNavigation.IdPelicula == filtros.IdPelicula
                 )
             );
-        }
 
-        return await query.CountAsync();
+        if (filtros.MontoMinimo.HasValue)
+            query = query.Where(c =>
+                c.DetallesCompras.Sum(dc => dc.PrecioUnitario * dc.Cantidad)
+                >= filtros.MontoMinimo.Value
+            );
+
+        if (filtros.MontoMaximo.HasValue)
+            query = query.Where(c =>
+                c.DetallesCompras.Sum(dc => dc.PrecioUnitario * dc.Cantidad)
+                <= filtros.MontoMaximo.Value
+            );
+
+        // --- Cálculo del total recaudado ---
+        var totalRecaudado = await query
+            .SelectMany(c => c.DetallesCompras)
+            .SumAsync(dc => dc.PrecioUnitario * dc.Cantidad);
+
+        return totalRecaudado;
     }
+
 
     private async Task<int> ObtenerTotalFuncionesAsync(FiltrosDashboardDTO filtros)
     {
@@ -446,46 +459,108 @@ public class DashboardRepository : IDashboardRepository
         return await query.CountAsync();
     }
 
-    private async Task<decimal> ObtenerIngresosTotalesAsync(FiltrosDashboardDTO filtros)
+    private async Task<int> ObtenerTotalEntradasVendidasAsync(FiltrosDashboardDTO filtros)
     {
-        IQueryable<DetallesCompra> queryable = _context.DetallesCompras.Include(dc =>
-            dc.IdCompraNavigation
-        );
+        var query = _context
+            .Compras
+            .Include(c => c.DetallesCompras)
+            .ThenInclude(dc => dc.IdFuncionNavigation)
+            .AsQueryable();
 
-        if (filtros.IdPelicula.HasValue)
-        {
-            queryable = queryable.Include(dc => dc.IdFuncionNavigation);
-        }
-
+        // --- Filtros ---
         if (filtros.FechaDesde.HasValue)
-        {
-            queryable = queryable.Where(dc =>
-                dc.IdCompraNavigation.FechaCompra >= filtros.FechaDesde.Value
-            );
-        }
+            query = query.Where(c => c.FechaCompra >= filtros.FechaDesde.Value);
 
         if (filtros.FechaHasta.HasValue)
-        {
-            queryable = queryable.Where(dc =>
-                dc.IdCompraNavigation.FechaCompra <= filtros.FechaHasta.Value
-            );
-        }
+            query = query.Where(c => c.FechaCompra <= filtros.FechaHasta.Value);
 
         if (filtros.IdCliente.HasValue)
-        {
-            queryable = queryable.Where(dc =>
-                dc.IdCompraNavigation.IdCliente == filtros.IdCliente.Value
-            );
-        }
+            query = query.Where(c => c.IdCliente == filtros.IdCliente.Value);
 
         if (filtros.IdPelicula.HasValue)
-        {
-            queryable = queryable.Where(dc =>
-                dc.IdFuncionNavigation != null
-                && dc.IdFuncionNavigation.IdPelicula == filtros.IdPelicula.Value
+            query = query.Where(c =>
+                c.DetallesCompras.Any(dc =>
+                    dc.IdFuncionNavigation.IdPelicula == filtros.IdPelicula.Value
+                )
             );
-        }
 
-        return await queryable.SumAsync(dc => dc.PrecioUnitario * dc.Cantidad);
+        if (filtros.MontoMinimo.HasValue)
+            query = query.Where(c =>
+                c.DetallesCompras.Sum(dc => dc.PrecioUnitario * dc.Cantidad)
+                >= filtros.MontoMinimo.Value
+            );
+
+        if (filtros.MontoMaximo.HasValue)
+            query = query.Where(c =>
+                c.DetallesCompras.Sum(dc => dc.PrecioUnitario * dc.Cantidad)
+                <= filtros.MontoMaximo.Value
+            );
+
+        // --- Total de entradas vendidas ---
+        int totalEntradas = await query
+            .SelectMany(c => c.DetallesCompras)
+            .SumAsync(dc => dc.Cantidad);
+
+        return totalEntradas;
     }
+
+    private async Task<decimal> ObtenerIngresoPromedioPorFuncionAsync(FiltrosDashboardDTO filtros)
+    {
+        var query = _context
+            .Compras
+            .Include(c => c.DetallesCompras)
+            .ThenInclude(dc => dc.IdFuncionNavigation)
+            .AsQueryable();
+
+        // --- Filtros ---
+        if (filtros.FechaDesde.HasValue)
+            query = query.Where(c => c.FechaCompra >= filtros.FechaDesde.Value);
+
+        if (filtros.FechaHasta.HasValue)
+            query = query.Where(c => c.FechaCompra <= filtros.FechaHasta.Value);
+
+        if (filtros.IdCliente.HasValue)
+            query = query.Where(c => c.IdCliente == filtros.IdCliente.Value);
+
+        if (filtros.IdPelicula.HasValue)
+            query = query.Where(c =>
+                c.DetallesCompras.Any(dc =>
+                    dc.IdFuncionNavigation.IdPelicula == filtros.IdPelicula.Value
+                )
+            );
+
+        if (filtros.MontoMinimo.HasValue)
+            query = query.Where(c =>
+                c.DetallesCompras.Sum(dc => dc.PrecioUnitario * dc.Cantidad)
+                >= filtros.MontoMinimo.Value
+            );
+
+        if (filtros.MontoMaximo.HasValue)
+            query = query.Where(c =>
+                c.DetallesCompras.Sum(dc => dc.PrecioUnitario * dc.Cantidad)
+                <= filtros.MontoMaximo.Value
+            );
+
+        // --- Obtener detalles filtrados en una sola proyección ---
+        var detallesQuery = query.SelectMany(c => c.DetallesCompras);
+
+        // Total dinero
+        decimal totalDinero = await detallesQuery
+            .SumAsync(dc => dc.PrecioUnitario * dc.Cantidad);
+
+        // Cantidad de funciones únicas
+        int totalFunciones = await detallesQuery
+            .Select(dc => dc.IdFuncion)
+            .Distinct()
+            .CountAsync();
+
+        if (totalFunciones == 0)
+            return 0;
+
+        // Promedio por función
+        return totalDinero / totalFunciones;
+    }
+
+
 }
+

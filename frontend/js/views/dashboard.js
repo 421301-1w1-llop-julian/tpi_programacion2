@@ -111,48 +111,47 @@ async function dashboardViewHandler() {
         console.log("Analytics data:", analytics);
         console.log("Compras data:", comprasResponse);
 
-        // La respuesta ahora es un objeto paginado
         const compras = comprasResponse.datos || comprasResponse.Datos || [];
-        const totalCompras =
-            comprasResponse.totalRegistros ||
-            comprasResponse.TotalRegistros ||
-            0;
-        const totalPaginas =
-            comprasResponse.totalPaginas || comprasResponse.TotalPaginas || 1;
+
         const paginaActual =
             comprasResponse.paginaActual || comprasResponse.PaginaActual || 1;
+        const totalPaginas =
+            comprasResponse.totalPaginas || comprasResponse.TotalPaginas || 1;
+        // La paginación depende de que totalRegistros sea > 0
+        const totalRegistros =
+            comprasResponse.totalRegistros ||
+            comprasResponse.totalRegistros ||
+            0;
 
-        // Calculate metrics usando valores del analytics (totales completos)
-        const totalVendido =
-            analytics.ingresosTotales || analytics.IngresosTotales || 0;
-        const funcionesVendidas =
-            analytics.totalFunciones || analytics.TotalFunciones || 0;
-        // Usar el total de compras del analytics o del total de registros paginados
-        const entradasVendidas =
-            analytics.totalCompras || analytics.TotalCompras || totalCompras;
-        const promedioPorFuncion =
-            funcionesVendidas > 0 ? totalVendido / funcionesVendidas : 0;
-
+        displaySalesList(compras, {
+            paginaActual: paginaActual,
+            totalPaginas: totalPaginas,
+            totalRegistros: totalRegistros,
+        });
         // Update analytics cards
         cardsContainer.innerHTML = `
             <div class="bg-cine-gray rounded-lg p-6 shadow-lg">
                 <h3 class="text-gray-400 mb-2 text-sm uppercase tracking-wide">Total Vendido</h3>
                 <p class="text-3xl font-bold text-white">${formatCurrency(
-                    totalVendido
+                    analytics.ingresosTotales
                 )}</p>
             </div>
             <div class="bg-cine-gray rounded-lg p-6 shadow-lg">
                 <h3 class="text-gray-400 mb-2 text-sm uppercase tracking-wide">Pelicula más vista</h3>
-                <p class="text-3xl font-bold text-white">${Pelicula}</p>
+                <p class="text-3xl font-bold text-white">${
+                    analytics.peliculaMasVista.nombre || "N/A"
+                }</p>
             </div>
             <div class="bg-cine-gray rounded-lg p-6 shadow-lg">
                 <h3 class="text-gray-400 mb-2 text-sm uppercase tracking-wide">Entradas Vendidas</h3>
-                <p class="text-3xl font-bold text-white">${entradasVendidas}</p>
+                <p class="text-3xl font-bold text-white">${
+                    analytics.entradasVendidas
+                }</p>
             </div>
             <div class="bg-cine-gray rounded-lg p-6 shadow-lg">
                 <h3 class="text-gray-400 mb-2 text-sm uppercase tracking-wide">Promedio por Función</h3>
                 <p class="text-3xl font-bold text-white">${formatCurrency(
-                    promedioPorFuncion
+                    analytics.ingresoPromedioFuncion
                 )}</p>
             </div>
         `;
@@ -161,7 +160,7 @@ async function dashboardViewHandler() {
         displaySalesList(compras, {
             paginaActual: paginaActual,
             totalPaginas: totalPaginas,
-            totalRegistros: totalCompras,
+            totalRegistros: totalRegistros,
         });
     } catch (error) {
         console.error("Error loading dashboard:", error);

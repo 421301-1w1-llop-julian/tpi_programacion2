@@ -18,9 +18,9 @@ public class DashboardService : IDashboardService
         return await _dashboardRepository.ObtenerDashboardAsync(filtros);
     }
 
-    public async Task<List<PeliculaVistaDTO>> ObtenerPeliculasMasVistasAsync(int? top = null, DateTime? fechaDesde = null, DateTime? fechaHasta = null)
+    public async Task<PeliculaVistaDTO> ObtenerPeliculaMasVistaAsync(FiltrosDashboardDTO filtros)
     {
-        return await _dashboardRepository.ObtenerPeliculasMasVistasAsync(top, fechaDesde, fechaHasta);
+        return await _dashboardRepository.ObtenerPeliculaMasVistaAsync(filtros);
     }
 
     public async Task<RespuestaPaginadaDTO<CompraDTO>> ObtenerComprasPaginadasAsync(FiltrosDashboardDTO filtros)
