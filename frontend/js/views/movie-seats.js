@@ -63,7 +63,11 @@ async function movieSeatsViewHandler(params, queryParams) {
             updateSeatsDisplay();
             updateTotalPrice();
             updateQuantityButtonsState();
-            updateContinueButton();
+            if (typeof updateContinueButton === 'function') {
+                updateContinueButton();
+            } else if (typeof window.updateContinueButton === 'function') {
+                window.updateContinueButton();
+            }
         };
 
         if (quantityInput) {
@@ -338,7 +342,19 @@ window.toggleSeat = function (seatId, row, number) {
         ticketQuantity,
         shouldEnable: selectedSeats.length === ticketQuantity && ticketQuantity > 0 && selectedSeats.length > 0
     });
-    updateContinueButton();
+    try {
+        console.log("Calling updateContinueButton, function exists:", typeof updateContinueButton);
+        if (typeof updateContinueButton === 'function') {
+            updateContinueButton();
+        } else if (typeof window.updateContinueButton === 'function') {
+            window.updateContinueButton();
+        } else {
+            console.error("updateContinueButton is not a function!");
+        }
+        console.log("updateContinueButton call completed");
+    } catch (error) {
+        console.error("Error in updateContinueButton:", error, error.stack);
+    }
     
     // Re-render summary to ensure all information is up to date
     // Do this AFTER updating the button so the button state persists
@@ -348,7 +364,11 @@ window.toggleSeat = function (seatId, row, number) {
         updateSeatsDisplay();
         updateTotalPrice();
         // Update button again after summary render to ensure state is maintained
-        updateContinueButton();
+        if (typeof updateContinueButton === 'function') {
+            updateContinueButton();
+        } else if (typeof window.updateContinueButton === 'function') {
+            window.updateContinueButton();
+        }
     }
 };
 
@@ -410,8 +430,14 @@ function updateQuantityButtonsState() {
     }
 }
 
-function updateContinueButton() {
+// Make updateContinueButton globally accessible
+window.updateContinueButton = function() {
+    console.log("updateContinueButton function STARTED");
+    console.log("Current state:", { selectedSeats: selectedSeats.length, ticketQuantity });
+    
     const continueBtn = document.getElementById("continue-seats-btn");
+    console.log("Button lookup result:", continueBtn);
+    
     if (!continueBtn) {
         console.warn("Continue button not found in updateContinueButton");
         return;
