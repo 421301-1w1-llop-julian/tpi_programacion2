@@ -587,8 +587,28 @@ const api = {
             headers: getHeaders(),
             body: JSON.stringify(data),
         });
-        if (!response.ok) throw new Error("Error al actualizar director");
-        return await response.json();
+        if (!response.ok) {
+            let errorText = "";
+            try {
+                errorText = await response.text();
+                if (!errorText) {
+                    errorText = `Status ${response.status}`;
+                }
+            } catch (e) {
+                errorText = `Status ${response.status}`;
+            }
+            console.error("Update director error:", response.status, errorText);
+            throw new Error(`Error al actualizar director: ${response.status} ${errorText}`);
+        }
+        if (response.status === 204) {
+            return null;
+        }
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+            const text = await response.text();
+            return text ? JSON.parse(text) : null;
+        }
+        return null;
     },
 
     async deleteDirector(id) {
@@ -616,8 +636,28 @@ const api = {
             headers: getHeaders(),
             body: JSON.stringify(data),
         });
-        if (!response.ok) throw new Error("Error al actualizar idioma");
-        return await response.json();
+        if (!response.ok) {
+            let errorText = "";
+            try {
+                errorText = await response.text();
+                if (!errorText) {
+                    errorText = `Status ${response.status}`;
+                }
+            } catch (e) {
+                errorText = `Status ${response.status}`;
+            }
+            console.error("Update language error:", response.status, errorText);
+            throw new Error(`Error al actualizar idioma: ${response.status} ${errorText}`);
+        }
+        if (response.status === 204) {
+            return null;
+        }
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+            const text = await response.text();
+            return text ? JSON.parse(text) : null;
+        }
+        return null;
     },
 
     async deleteLanguage(id) {
