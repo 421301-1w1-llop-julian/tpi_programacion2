@@ -25,6 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
     router.register("/candy", "candy.html", candyViewHandler);
     router.register("/candy/:id", "candy-detail.html", candyDetailViewHandler);
     router.register("/comprar", "purchase.html", purchaseViewHandler);
+    router.register("/acerca-de", "about.html", aboutViewHandler);
     router.register("/dashboard", "dashboard.html", dashboardViewHandler);
     router.register("/dashboard/peliculas", "dashboard.html", () =>
         dashboardSectionViewHandler({ section: "peliculas" })
