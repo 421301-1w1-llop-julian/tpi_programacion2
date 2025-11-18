@@ -61,7 +61,7 @@ async function loadLanguagesCRUD() {
 }
 
 window.editLanguage = function (id) {
-    showNotification("Funcionalidad en desarrollo", "info");
+    showIdiomaModal(id);
 };
 
 window.deleteLanguage = async function (id) {
@@ -76,7 +76,6 @@ window.deleteLanguage = async function (id) {
     }
 };
 
-window.showLanguageModal = function () {
-    showNotification("Modal de idioma en desarrollo", "info");
-};
+// La función showIdiomaModal ya está definida globalmente en idioma-modal.js
+// No necesitamos redefinirla aquí, solo usarla directamente
 

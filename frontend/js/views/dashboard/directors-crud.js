@@ -61,7 +61,7 @@ async function loadDirectorsCRUD() {
 }
 
 window.editDirector = function (id) {
-    showNotification("Funcionalidad en desarrollo", "info");
+    showDirectorModal(id);
 };
 
 window.deleteDirector = async function (id) {
@@ -76,6 +76,5 @@ window.deleteDirector = async function (id) {
     }
 };
 
-window.showDirectorModal = function () {
-    showNotification("Modal de director en desarrollo", "info");
-};
+// La función showDirectorModal ya está definida globalmente en director-modal.js
+// No necesitamos redefinirla aquí, solo usarla directamente

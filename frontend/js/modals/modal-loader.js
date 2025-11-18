@@ -2,6 +2,9 @@
 let movieModalInitialized = false;
 let productModalInitialized = false;
 let actorModalInitialized = false;
+let funcionModalInitialized = false;
+let directorModalInitialized = false;
+let idiomaModalInitialized = false;
 
 // Compute modalPath at runtime from the current document path (same logic as router)
 const modalPath = (function () {
@@ -38,6 +41,15 @@ async function loadModal(modalFile) {
         } else if (modalId === "actor-modal" && !actorModalInitialized) {
             initActorModal();
             actorModalInitialized = true;
+        } else if (modalId === "funcion-modal" && !funcionModalInitialized) {
+            initFuncionModal();
+            funcionModalInitialized = true;
+        } else if (modalId === "director-modal" && !directorModalInitialized) {
+            initDirectorModal();
+            directorModalInitialized = true;
+        } else if (modalId === "idioma-modal" && !idiomaModalInitialized) {
+            initIdiomaModal();
+            idiomaModalInitialized = true;
         }
     } catch (error) {
         console.error("Error loading modal:", error);
@@ -49,6 +61,9 @@ document.addEventListener("click", (e) => {
     const movieModal = document.getElementById("movie-modal");
     const productModal = document.getElementById("product-modal");
     const actorModal = document.getElementById("actor-modal");
+    const funcionModal = document.getElementById("funcion-modal");
+    const directorModal = document.getElementById("director-modal");
+    const idiomaModal = document.getElementById("idioma-modal");
 
     if (movieModal && e.target === movieModal) {
         closeMovieModal();
@@ -58,6 +73,15 @@ document.addEventListener("click", (e) => {
     }
     if (actorModal && e.target === actorModal) {
         closeActorModal();
+    }
+    if (funcionModal && e.target === funcionModal) {
+        closeFuncionModal();
+    }
+    if (directorModal && e.target === directorModal) {
+        closeDirectorModal();
+    }
+    if (idiomaModal && e.target === idiomaModal) {
+        closeIdiomaModal();
     }
 });
 

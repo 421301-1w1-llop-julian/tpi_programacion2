@@ -361,6 +361,14 @@ const api = {
         return await response.json();
     },
 
+    async getLanguage(id) {
+        const response = await fetch(`${API_BASE_URL}/idioma/${id}`, {
+            headers: getHeaders(false),
+        });
+        if (!response.ok) throw new Error("Error al cargar idioma");
+        return await response.json();
+    },
+
     async getClassifications() {
         const response = await fetch(`${API_BASE_URL}/Clasificaciones`, {
             headers: getHeaders(false),
@@ -468,6 +476,14 @@ const api = {
         return await response.json();
     },
 
+    async getDirector(id) {
+        const response = await fetch(`${API_BASE_URL}/Director/${id}`, {
+            headers: getHeaders(false),
+        });
+        if (!response.ok) throw new Error("Error al cargar director");
+        return await response.json();
+    },
+
     async getDistribuidoras() {
         const response = await fetch(`${API_BASE_URL}/Distribuidora`, {
             headers: getHeaders(false),
@@ -532,5 +548,23 @@ const api = {
         });
         if (!response.ok) throw new Error("Error al eliminar idioma");
         return true;
+    },
+
+    async getSalas() {
+        // Nota: Este endpoint puede no existir aún en el backend
+        // Si no existe, se puede crear o usar una alternativa
+        try {
+            const response = await fetch(`${API_BASE_URL}/Sala`, {
+                headers: getHeaders(false),
+            });
+            if (!response.ok) {
+                console.warn("Endpoint de salas no disponible, retornando array vacío");
+                return [];
+            }
+            return await response.json();
+        } catch (error) {
+            console.warn("Error al cargar salas:", error);
+            return [];
+        }
     },
 };

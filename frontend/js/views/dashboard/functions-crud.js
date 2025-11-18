@@ -9,7 +9,7 @@ async function loadFunctionsCRUD() {
     if (title) title.textContent = "Gestión de Funciones";
     if (btn) {
         btn.textContent = "+ Agregar Función";
-        btn.setAttribute("onclick", "showFunctionModal()");
+        btn.setAttribute("onclick", "showFuncionModal()");
     }
 
     try {
@@ -61,7 +61,7 @@ async function loadFunctionsCRUD() {
 }
 
 window.editFunction = function (id) {
-    showNotification("Funcionalidad en desarrollo", "info");
+    showFuncionModal(id);
 };
 
 window.deleteFunction = async function (id) {
@@ -76,7 +76,6 @@ window.deleteFunction = async function (id) {
     }
 };
 
-window.showFunctionModal = function () {
-    showNotification("Modal de función en desarrollo", "info");
-};
+// La función showFuncionModal ya está definida globalmente en funcion-modal.js
+// No necesitamos redefinirla aquí, solo usarla directamente
 
