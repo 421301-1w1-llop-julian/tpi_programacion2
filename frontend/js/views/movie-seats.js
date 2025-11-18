@@ -4,6 +4,7 @@ let ticketQuantity = 1;
 let unitPrice = 0;
 let currentSeatsFunction = null;
 let currentSeatsMovie = null;
+let currentSeatsData = []; // Store seats data to avoid re-fetching
 
 async function movieSeatsViewHandler(params, queryParams) {
     const movieId = params.id;
@@ -25,6 +26,7 @@ async function movieSeatsViewHandler(params, queryParams) {
 
         currentSeatsMovie = movie;
         currentSeatsFunction = funcion;
+        currentSeatsData = seats; // Store seats data
         unitPrice = funcion.precioBase || 0;
         ticketQuantity = 1; // Reset quantity
         selectedSeats = []; // Reset selected seats
@@ -301,11 +303,9 @@ window.toggleSeat = function (seatId, row, number) {
         window.selectedSeatsInfo[seatId] = { fila: row, numero: number };
     }
 
-    // Re-render seats to update visual state
-    if (currentSeatsFunction) {
-        api.getSeats(currentSeatsFunction.idFuncion).then((seats) => {
-            renderSeats(seats);
-        });
+    // Re-render seats to update visual state (use cached seats data)
+    if (currentSeatsData.length > 0) {
+        renderSeats(currentSeatsData);
     }
 
     // Update summary immediately when seat is selected/deselected
@@ -320,11 +320,8 @@ window.toggleSeat = function (seatId, row, number) {
         updateTotalPrice();
     }
     
-    // Update continue button after all DOM updates
-    // Use setTimeout to ensure DOM is fully updated
-    setTimeout(() => {
-        updateContinueButton();
-    }, 0);
+    // Update continue button immediately (no need for setTimeout since we're not doing async operations)
+    updateContinueButton();
 };
 
 function updateSeatsDisplay() {
@@ -388,7 +385,7 @@ function updateQuantityButtonsState() {
 function updateContinueButton() {
     const continueBtn = document.getElementById("continue-seats-btn");
     if (!continueBtn) {
-        console.warn("Continue button not found");
+        console.warn("Continue button not found in updateContinueButton");
         return;
     }
 
@@ -396,6 +393,12 @@ function updateContinueButton() {
         selectedSeats.length === ticketQuantity &&
         ticketQuantity > 0 &&
         selectedSeats.length > 0;
+
+    console.log("updateContinueButton called:", {
+        selectedSeats: selectedSeats.length,
+        ticketQuantity,
+        shouldEnable
+    });
 
     if (shouldEnable) {
         continueBtn.disabled = false;
@@ -411,6 +414,7 @@ function updateContinueButton() {
             "hover:bg-red-700",
             "cursor-pointer"
         );
+        console.log("Button enabled");
     } else {
         continueBtn.disabled = true;
         continueBtn.setAttribute("disabled", "disabled");
@@ -425,5 +429,6 @@ function updateContinueButton() {
             "text-gray-400",
             "cursor-not-allowed"
         );
+        console.log("Button disabled");
     }
 }
