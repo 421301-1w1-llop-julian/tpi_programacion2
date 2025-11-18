@@ -11,10 +11,12 @@ async function loadProductsCRUD(pagina = 1) {
         if (allProducts.length === 0 || pagina === 1) {
             allProducts = await api.getProducts();
         }
-        
+
         currentProductsPage = pagina;
         const paginacion = paginateData(allProducts, pagina, productsPageSize);
         const products = paginacion.datos;
+
+        console.log(allProducts);
 
         container.innerHTML = `
             <div class="overflow-x-auto">
@@ -29,9 +31,11 @@ async function loadProductsCRUD(pagina = 1) {
                         </tr>
                     </thead>
                     <tbody>
-                        ${products.length > 0 ? products
-                            .map(
-                                (product) => `
+                        ${
+                            products.length > 0
+                                ? products
+                                      .map(
+                                          (product) => `
                             <tr class="border-t border-gray-700 hover:bg-gray-800">
                                 <td class="px-6 py-4">${product.idProducto}</td>
                                 <td class="px-6 py-4">${sanitizeInput(
@@ -41,8 +45,7 @@ async function loadProductsCRUD(pagina = 1) {
                                     product.precio
                                 )}</td>
                                 <td class="px-6 py-4">${
-                                    product.idTipoProductoNavigation?.nombre ||
-                                    "N/A"
+                                    product.tipoProducto || "N/A"
                                 }</td>
                                 <td class="px-6 py-4">
                                     <button onclick="editProduct(${
@@ -54,19 +57,26 @@ async function loadProductsCRUD(pagina = 1) {
                                 </td>
                             </tr>
                         `
-                            )
-                            .join("") : '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-400">No hay productos disponibles</td></tr>'}
+                                      )
+                                      .join("")
+                                : '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-400">No hay productos disponibles</td></tr>'
+                        }
                     </tbody>
                 </table>
             </div>
-            ${renderPagination(paginacion.paginaActual, paginacion.totalPaginas, paginacion.totalRegistros, "changeProductsPage")}
+            ${renderPagination(
+                paginacion.paginaActual,
+                paginacion.totalPaginas,
+                paginacion.totalRegistros,
+                "changeProductsPage"
+            )}
         `;
     } catch (error) {
         container.innerHTML = `<div class="p-4 text-red-400">Error al cargar productos: ${error.message}</div>`;
     }
 }
 
-window.changeProductsPage = function(pagina) {
+window.changeProductsPage = function (pagina) {
     loadProductsCRUD(pagina);
 };
 

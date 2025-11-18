@@ -139,7 +139,7 @@ async function dashboardViewHandler() {
             <div class="bg-cine-gray rounded-lg p-6 shadow-lg">
                 <h3 class="text-gray-400 mb-2 text-sm uppercase tracking-wide">Pelicula más vista</h3>
                 <p class="text-3xl font-bold text-white">${
-                    analytics.peliculaMasVista.nombre || "N/A"
+                    analytics.peliculaMasVista.nombre
                 }</p>
             </div>
             <div class="bg-cine-gray rounded-lg p-6 shadow-lg">
