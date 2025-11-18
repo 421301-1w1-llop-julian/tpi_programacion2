@@ -159,12 +159,13 @@ function renderSummary(movie, funcion) {
                 <p class="text-gray-300">${fecha} · ${hora}</p>
             </div>
             <div>
-                <span class="text-gray-400">Butacas:</span>
-                <p id="selected-seats-display" class="font-semibold">-</p>
+                <span class="text-gray-400">Butacas seleccionadas:</span>
+                <p id="selected-seats-count" class="font-semibold">0</p>
+                <p id="selected-seats-display" class="text-sm text-gray-300">-</p>
             </div>
             <div>
-                <span class="text-gray-400">Entradas:</span>
-                <p id="tickets-display" class="font-semibold">${ticketQuantity} · ${formatCurrency(
+                <span class="text-gray-400">Entradas a comprar:</span>
+                <p id="tickets-display" class="font-semibold">${ticketQuantity} entrada${ticketQuantity !== 1 ? 's' : ''} · ${formatCurrency(
         total
     )}</p>
             </div>
@@ -370,6 +371,12 @@ window.toggleSeat = function (seatId, row, number) {
 
 function updateSeatsDisplay() {
     const display = document.getElementById("selected-seats-display");
+    const countDisplay = document.getElementById("selected-seats-count");
+    
+    if (countDisplay) {
+        countDisplay.textContent = `${selectedSeats.length} butaca${selectedSeats.length !== 1 ? 's' : ''}`;
+    }
+    
     if (display) {
         if (selectedSeats.length === 0) {
             display.textContent = "-";
@@ -403,7 +410,7 @@ function updateTotalPrice() {
         summaryTotalEl.textContent = formatCurrency(total);
     }
     if (ticketsDisplayEl) {
-        ticketsDisplayEl.textContent = `${ticketQuantity} · ${formatCurrency(
+        ticketsDisplayEl.textContent = `${ticketQuantity} entrada${ticketQuantity !== 1 ? 's' : ''} · ${formatCurrency(
             total
         )}`;
     }
