@@ -1,0 +1,396 @@
+// Movie Detail Handler
+async function movieDetailViewHandler(params) {
+    const movieId = params.id;
+    const content = document.getElementById("movie-detail-content");
+    if (!content) return;
+
+    try {
+        const [movie, functions] = await Promise.all([
+            api.getMovie(movieId),
+            api.getFunctions(movieId),
+        ]);
+
+        // Generate date options (today to 1 month ahead)
+        const dateOptions = generateDateOptions();
+
+        content.innerHTML = `
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Left column: movie information -->
+                <div class="space-y-6">
+                    <div>
+                        <h1 class="text-4xl font-bold mb-3">${sanitizeInput(
+                            movie.nombre || "Sin título"
+                        )}</h1>
+                        <div class="w-full bg-gray-700 rounded overflow-hidden">
+                            <img src=${movie.imagen} alt="${sanitizeInput(
+            movie.nombre
+        )}" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <p class="text-gray-300">${sanitizeInput(
+                            movie.descripcion || "Sin descripción"
+                        )}</p>
+                        <div class="space-y-2 text-sm">
+                            <div><span class="font-semibold text-white">Duración:</span> ${formatDuration(
+                                movie.duracion || 0
+                            )}</div>
+                            <div><span class="font-semibold text-white">Fecha de Estreno:</span> ${formatDate(
+                                movie.fechaEstreno
+                            )}</div>
+                            <div><span class="font-semibold text-white">Clasificación:</span> ${
+                                movie.idClasificacionNavigation?.nombre || "N/A"
+                            }</div>
+                            <div><span class="font-semibold text-white">Tipo de Público:</span> ${
+                                movie.idTipoPublicoNavigation?.nombre || "N/A"
+                            }</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right column: scheduling -->
+                <div class="space-y-6">
+                    <div class="bg-gray-800 rounded-lg p-6">
+                        <div class="mb-4">
+                            <label class="block text-sm font-semibold mb-2">Seleccionar Día</label>
+                            <div id="date-selector" class="flex gap-2 overflow-x-auto pb-2">
+                                ${dateOptions
+                                    .map(
+                                        (date, index) => `
+                                    <button 
+                                        type="button"
+                                        class="date-option flex-shrink-0 px-4 py-2 rounded ${
+                                            index === 0
+                                                ? "bg-cine-red text-white"
+                                                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                                        }"
+                                        data-date="${date.value}"
+                                    >
+                                        ${date.label}
+                                    </button>
+                                `
+                                    )
+                                    .join("")}
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">Formato</label>
+                                <select id="format-filter" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded focus:outline-none focus:border-cine-red">
+                                    <option value="">Todos los formatos</option>
+                                    <option value="2D">2D</option>
+                                    <option value="3D">3D</option>
+                                    <option value="4D">4D</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">Idioma</label>
+                                <select id="language-filter" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded focus:outline-none focus:border-cine-red">
+                                    <option value="">Todos los idiomas</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="showtimes-container" class="bg-gray-800 rounded-lg p-6">
+                        <h2 class="text-2xl font-bold mb-4">Horarios Disponibles</h2>
+                        <div id="showtimes-list"></div>
+                        <div class="mt-6 pt-6 border-t border-gray-700">
+                            <button
+                                id="continue-to-seats-btn"
+                                disabled
+                                class="w-full bg-gray-600 text-gray-400 px-8 py-3 rounded font-bold cursor-not-allowed transition"
+                            >
+                                Continuar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Load languages for filter
+        const languages = await api.getLanguages();
+        const languageFilter = document.getElementById("language-filter");
+        languages.forEach((lang) => {
+            const option = document.createElement("option");
+            option.value = lang.idIdioma;
+            option.textContent = sanitizeInput(lang.nombre);
+            languageFilter.appendChild(option);
+        });
+
+        // Setup event listeners
+        setupMovieDetailListeners(movieId, functions, dateOptions[0].value);
+    } catch (error) {
+        content.innerHTML = `
+            <div class="bg-red-900 bg-opacity-50 border border-red-500 rounded p-4">
+                <p>Error al cargar la película: ${error.message}</p>
+            </div>
+        `;
+    }
+}
+
+function generateDateOptions() {
+    const options = [];
+    const today = new Date();
+    const oneMonthLater = new Date(today);
+    oneMonthLater.setMonth(oneMonthLater.getMonth() + 1);
+
+    const days = ["DOM", "LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB"];
+    const months = [
+        "ENE",
+        "FEB",
+        "MAR",
+        "ABR",
+        "MAY",
+        "JUN",
+        "JUL",
+        "AGO",
+        "SEP",
+        "OCT",
+        "NOV",
+        "DIC",
+    ];
+
+    for (let i = 0; i <= 30; i++) {
+        const date = new Date(today);
+        date.setDate(date.getDate() + i);
+
+        const dayName = days[date.getDay()];
+        const day = date.getDate();
+        const month = months[date.getMonth()];
+
+        let label;
+        if (i === 0) {
+            label = "HOY";
+        } else if (i === 1) {
+            label = "MAÑANA";
+        } else {
+            label = `${dayName} ${day}/${month}`;
+        }
+
+        options.push({
+            label,
+            value: date.toISOString().split("T")[0],
+            date: date,
+        });
+    }
+
+    return options;
+}
+
+function setupMovieDetailListeners(movieId, functions, selectedDate) {
+    let currentDate = selectedDate;
+    let currentFormat = "";
+    let currentLanguage = "";
+    
+    // Store selected function ID in a way that's accessible to both functions
+    const state = {
+        selectedFuncionId: null,
+        movieId: movieId
+    };
+
+    // Function to update continue button state
+    function updateContinueButton() {
+        const btn = document.getElementById("continue-to-seats-btn");
+        if (!btn) return;
+
+        if (state.selectedFuncionId && currentDate) {
+            btn.disabled = false;
+            btn.classList.remove("bg-gray-600", "text-gray-400", "cursor-not-allowed");
+            btn.classList.add("bg-cine-red", "text-white", "hover:bg-red-700", "cursor-pointer");
+        } else {
+            btn.disabled = true;
+            btn.classList.remove("bg-cine-red", "text-white", "hover:bg-red-700", "cursor-pointer");
+            btn.classList.add("bg-gray-600", "text-gray-400", "cursor-not-allowed");
+        }
+    }
+
+    // Date selector
+    document.querySelectorAll(".date-option").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            document
+                .querySelectorAll(".date-option")
+                .forEach((b) =>
+                    b.classList.remove("bg-cine-red", "text-white")
+                );
+            document
+                .querySelectorAll(".date-option")
+                .forEach((b) =>
+                    b.classList.add("bg-gray-700", "text-gray-300")
+                );
+            btn.classList.remove("bg-gray-700", "text-gray-300");
+            btn.classList.add("bg-cine-red", "text-white");
+            currentDate = btn.dataset.date;
+            state.selectedFuncionId = null; // Reset selected function when date changes
+            renderShowtimes(movieId, functions, currentDate, currentFormat, currentLanguage, state);
+            updateContinueButton();
+        });
+    });
+
+    // Format filter
+    const formatFilter = document.getElementById("format-filter");
+    formatFilter.addEventListener("change", (e) => {
+        currentFormat = e.target.value;
+        state.selectedFuncionId = null; // Reset selected function when filter changes
+        renderShowtimes(movieId, functions, currentDate, currentFormat, currentLanguage, state);
+        updateContinueButton();
+    });
+
+    // Language filter
+    const languageFilter = document.getElementById("language-filter");
+    languageFilter.addEventListener("change", (e) => {
+        currentLanguage = e.target.value;
+        state.selectedFuncionId = null; // Reset selected function when filter changes
+        renderShowtimes(movieId, functions, currentDate, currentFormat, currentLanguage, state);
+        updateContinueButton();
+    });
+
+    // Continue button handler
+    const continueBtn = document.getElementById("continue-to-seats-btn");
+    if (continueBtn) {
+        continueBtn.addEventListener("click", () => {
+            if (state.selectedFuncionId) {
+                // Check if user is authenticated
+                if (!auth.isAuthenticated()) {
+                    showNotification("Debes iniciar sesión para comprar entradas", "error");
+                    router.navigate("/login");
+                    return;
+                }
+                // Navigate to seat selection
+                router.navigate(`/pelicula/${movieId}/compra_entradas/butacas?funcion=${state.selectedFuncionId}`);
+            }
+        });
+    }
+
+    // Make state and updateContinueButton available to renderShowtimes
+    window.movieDetailState = state;
+    window.updateContinueButton = updateContinueButton;
+
+    // Initial render
+    renderShowtimes(movieId, functions, currentDate, currentFormat, currentLanguage, state);
+}
+
+function renderShowtimes(movieId, functions, selectedDate, formatFilter, languageFilter, state) {
+    const showtimesList = document.getElementById("showtimes-list");
+    if (!showtimesList) return;
+
+    // Filter functions by date
+    const selectedDateObj = new Date(selectedDate + "T00:00:00");
+    const filteredFunctions = functions.filter((func) => {
+        const funcDate = new Date(func.fechaHoraInicio);
+        const funcDateOnly = new Date(funcDate.getFullYear(), funcDate.getMonth(), funcDate.getDate());
+        const selectedDateOnly = new Date(selectedDateObj.getFullYear(), selectedDateObj.getMonth(), selectedDateObj.getDate());
+        
+        return (
+            funcDateOnly.getTime() === selectedDateOnly.getTime() &&
+            (!formatFilter || (func.formato || "2D") === formatFilter) &&
+            (!languageFilter || (func.idiomaId || func.idIdioma) === parseInt(languageFilter))
+        );
+    });
+
+    if (filteredFunctions.length === 0) {
+        showtimesList.innerHTML =
+            '<p class="text-gray-400 text-center py-8">No hay horarios disponibles para esta fecha</p>';
+        // Reset selection and update button
+        if (state) state.selectedFuncionId = null;
+        if (window.updateContinueButton) window.updateContinueButton();
+        return;
+    }
+
+    // Group by format and language (using defaults if not available)
+    // Note: formato and idioma may not be in the function DTO, using defaults
+    const grouped = {};
+    filteredFunctions.forEach((func) => {
+        // Default values - you may need to adjust based on your backend structure
+        const format = func.formato || "2D";
+        const language = func.idioma || func.idiomaId || "Castellano";
+        const key = `${format}_${language}`;
+
+        if (!grouped[key]) {
+            grouped[key] = {
+                format,
+                language,
+                showtimes: [],
+            };
+        }
+
+        grouped[key].showtimes.push(func);
+    });
+
+    // Sort showtimes by time
+    Object.keys(grouped).forEach((key) => {
+        grouped[key].showtimes.sort(
+            (a, b) =>
+                new Date(a.fechaHoraInicio) - new Date(b.fechaHoraInicio)
+        );
+    });
+
+    // Render grouped showtimes
+    const currentSelectedFuncionId = state?.selectedFuncionId || null;
+    
+    showtimesList.innerHTML = Object.values(grouped)
+        .map(
+            (group) => `
+            <div class="mb-6">
+                <h3 class="text-xl font-semibold mb-3">${group.format} ${group.language.toUpperCase()}</h3>
+                <div class="flex flex-wrap gap-3">
+                    ${group.showtimes
+                        .map(
+                            (func) => {
+                                const isSelected = currentSelectedFuncionId === func.idFuncion;
+                                return `
+                        <button
+                            class="showtime-btn px-4 py-2 rounded transition ${
+                                isSelected
+                                    ? "bg-cine-red text-white border-2 border-red-600"
+                                    : "bg-gray-700 hover:bg-gray-600 text-gray-300"
+                            }"
+                            data-funcion-id="${func.idFuncion}"
+                        >
+                            ${formatTime(func.fechaHoraInicio)}
+                        </button>
+                    `;
+                            }
+                        )
+                        .join("")}
+                </div>
+            </div>
+        `
+        )
+        .join("");
+
+    // Add click listeners to showtime buttons
+    document.querySelectorAll(".showtime-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const funcionId = parseInt(btn.dataset.funcionId);
+            
+            // Remove selection from all buttons
+            document.querySelectorAll(".showtime-btn").forEach((b) => {
+                b.classList.remove("bg-cine-red", "text-white", "border-2", "border-red-600");
+                b.classList.add("bg-gray-700", "text-gray-300");
+            });
+            
+            // Add selection to clicked button
+            btn.classList.remove("bg-gray-700", "text-gray-300");
+            btn.classList.add("bg-cine-red", "text-white", "border-2", "border-red-600");
+            
+            // Update selected function ID in state
+            if (state) {
+                state.selectedFuncionId = funcionId;
+            }
+            
+            // Update continue button state
+            if (window.updateContinueButton) {
+                window.updateContinueButton();
+            }
+        });
+    });
+    
+    // Update continue button state
+    if (window.updateContinueButton) {
+        window.updateContinueButton();
+    }
+}
+
+// formatTime is now in utils.js

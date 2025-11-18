@@ -1,6 +1,7 @@
 using System.Text;
 using Cine2025.Repositories;
 using Cine2025.Repositories.Interfaces;
+using Cine2025.Services;
 using Cine2025.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -26,10 +27,44 @@ builder.Services.AddDbContext<CINE_2025_1W1_GRUPO_5Context>(options =>
 // --- Repositories ---
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<ITiposUsuarioRepository, TiposUsuarioRepository>();
+builder.Services.AddScoped<ICompraRepository, CompraRepository>();
+builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
+builder.Services.AddScoped<IGeneroRepository, GeneroRepository>();
+builder.Services.AddScoped<IIdiomaRepository, IdiomaRepository>();
+builder.Services.AddScoped<IActorRepository, ActorRepository>();
+builder.Services.AddScoped<IDirectorRepository, DirectorRepository>();
+builder.Services.AddScoped<IPaisRepository, PaisRepository>();
+builder.Services.AddScoped<IProductosRepository, ProductoRepository>();
+builder.Services.AddScoped<ITiposProductoRepository, TiposProductoRepository>();
+builder.Services.AddScoped<IPeliculaRepository, PeliculaRepository>();
+builder.Services.AddScoped<IClasificacionRepository, ClasificacionRepository>();
+builder.Services.AddScoped<ITipoPublicoRepository, TipoPublicoRepository>();
+builder.Services.AddScoped<IFuncionRepository, FuncionRepository>();
+builder.Services.AddScoped<IButacaRepository, ButacaRepository>();
+builder.Services.AddScoped<IButacasFuncionRepository, ButacasFuncionRepository>();
+builder.Services.AddScoped<ISalaRepository, SalaRepository>();
+
+
 
 // --- Services ---
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<ITiposUsuarioService, TiposUsuarioService>();
+builder.Services.AddScoped<ICompraService, CompraService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IGeneroService, GeneroService>();
+builder.Services.AddScoped<IIdiomaService, IdiomaService>();
+builder.Services.AddScoped<IActorService, ActorService>();
+builder.Services.AddScoped<IDirectorService, DirectorService>();
+builder.Services.AddScoped<IPaisService, PaisService>();
+builder.Services.AddScoped<IProductoService, ProductoService>();
+builder.Services.AddScoped<ITiposProductoService, TiposProductoService>();
+builder.Services.AddScoped<IPeliculaService, PeliculaService>();
+builder.Services.AddScoped<IClasificacionService, ClasificacionService>();
+builder.Services.AddScoped<ITipoPublicoService, TipoPublicoService>();
+builder.Services.AddScoped<IFuncionService, FuncionService>();
+builder.Services.AddScoped<IButacaService, ButacaService>();
+builder.Services.AddScoped<IButacasFuncionService, ButacasFuncionService>();
+builder.Services.AddScoped<ISalaService, SalaService>();
 
 // --- JWT Authentication ---
 builder
@@ -53,6 +88,20 @@ builder
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret)),
             ClockSkew = TimeSpan.Zero,
         };
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                // Si la autenticaci�n falla (token caducado, firma inv�lida, etc.)
+                // Establece el estado de respuesta a 401 Unauthorized y detiene el procesamiento
+                context.Response.StatusCode = 401;
+                context.Response.ContentType = "application/json";
+                // Puedes personalizar el cuerpo aqu� para mayor claridad, pero 401 es suficiente.
+                context.Response.WriteAsync("{\"error\":\"Token de autenticaci�n inv�lido o caducado.\"}");
+                context.Fail("Token de autenticaci�n inv�lido o caducado.");
+                return Task.CompletedTask;
+            }
+        };
     });
 
 // --- Controllers & Swagger ---
@@ -63,6 +112,18 @@ builder.Services.AddAuthorization(options =>
 });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowLocal", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:5500", "http://127.0.0.1:5500")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
 
 var app = builder.Build();
 
@@ -75,12 +136,18 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseCors("AllowLocal");
+
+// 1. Usa Routing (Identifica a d�nde va la petici�n: /api/Compras)
 app.UseRouting();
 
-app.UseAuthentication(); // Debe ir antes de UseAuthorization
+// 2. Usa Authentication (Lee el token 'Bearer' y extrae el ID)
+app.UseAuthentication();
 
-app.UseAuthorization();
+// 3. Usa Authorization (Aplica la restricci�n [Authorize] a la ruta)
+app.UseAuthorization(); // <--- �Esta l�nea es la m�s cr�tica!
 
+// 4. Mapea Controllers (Ejecuta el c�digo del ComprasController)
 app.MapControllers();
 
 app.Run();

@@ -1,0 +1,111 @@
+<div id="movie-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-cine-gray rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold" id="movie-modal-title">Agregar Película</h2>
+                <button onclick="closeMovieModal()" class="text-gray-400 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <form id="movie-form" class="space-y-4">
+                <input type="hidden" id="movie-id">
+                <div>
+                    <label for="movie-nombre" class="block text-sm font-medium mb-2">Nombre *</label>
+                    <input type="text" id="movie-nombre" required
+                        class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-cine-red">
+                </div>
+                <div>
+                    <label for="movie-descripcion" class="block text-sm font-medium mb-2">Descripción *</label>
+                    <textarea id="movie-descripcion" rows="4" required
+                        class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-cine-red"></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="movie-duracion" class="block text-sm font-medium mb-2">Duración (minutos) *</label>
+                        <input type="number" id="movie-duracion" min="1" required
+                            class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-cine-red">
+                    </div>
+                    <div>
+                        <label for="movie-fecha-estreno" class="block text-sm font-medium mb-2">Fecha de Estreno *</label>
+                        <input type="date" id="movie-fecha-estreno" required
+                            class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-cine-red">
+                    </div>
+                </div>
+                <div>
+                    <label for="movie-imagen" class="block text-sm font-medium mb-2">URL de Imagen</label>
+                    <input type="text" id="movie-imagen"
+                        class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-cine-red"
+                        placeholder="https://ejemplo.com/imagen.jpg">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="movie-clasificacion" class="block text-sm font-medium mb-2">Clasificación *</label>
+                        <select id="movie-clasificacion" required
+                            class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-cine-red">
+                            <option value="">Seleccionar...</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="movie-pais" class="block text-sm font-medium mb-2">País *</label>
+                        <select id="movie-pais" required
+                            class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-cine-red">
+                            <option value="">Seleccionar...</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="movie-distribuidora" class="block text-sm font-medium mb-2">Distribuidora *</label>
+                        <select id="movie-distribuidora" required
+                            class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-cine-red">
+                            <option value="">Seleccionar...</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="movie-tipo-publico" class="block text-sm font-medium mb-2">Tipo de Público *</label>
+                        <select id="movie-tipo-publico" required
+                            class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-cine-red">
+                            <option value="">Seleccionar...</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Géneros</label>
+                    <div id="movie-generos" class="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-32 overflow-y-auto border border-gray-700 rounded p-2 bg-gray-800">
+                        <!-- Géneros se cargarán dinámicamente -->
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Idiomas</label>
+                    <div id="movie-idiomas" class="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-32 overflow-y-auto border border-gray-700 rounded p-2 bg-gray-800">
+                        <!-- Idiomas se cargarán dinámicamente -->
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Actores</label>
+                    <div id="movie-actores" class="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-32 overflow-y-auto border border-gray-700 rounded p-2 bg-gray-800">
+                        <!-- Actores se cargarán dinámicamente -->
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Directores</label>
+                    <div id="movie-directores" class="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-32 overflow-y-auto border border-gray-700 rounded p-2 bg-gray-800">
+                        <!-- Directores se cargarán dinámicamente -->
+                    </div>
+                </div>
+                <div id="movie-form-error" class="text-red-500 text-sm hidden"></div>
+                <div class="flex space-x-4 pt-4">
+                    <button type="button" onclick="closeMovieModal()" class="flex-1 bg-gray-700 px-4 py-2 rounded hover:bg-gray-600 transition">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="flex-1 bg-cine-red px-4 py-2 rounded hover:bg-red-700 transition">
+                        Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+

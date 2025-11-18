@@ -10,8 +10,10 @@ public partial class Pelicula
     public int IdPelicula { get; set; }
 
     public string Nombre { get; set; }
-
     public string Descripcion { get; set; }
+
+    // Nueva columna para almacenar la ruta/URL de la imagen (varchar(300))
+    public string Imagen { get; set; }
 
     public int Duracion { get; set; }
 

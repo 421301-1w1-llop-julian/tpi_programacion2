@@ -1,0 +1,132 @@
+<div class="container mx-auto px-4 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Content: Seats Selection -->
+        <div class="lg:col-span-2">
+            <h1 class="text-3xl font-bold mb-6">Seleccioná tu Butaca</h1>
+
+            <!-- Screen -->
+            <div class="text-center mb-8">
+                <div
+                    class="w-full bg-gray-700 rounded-lg py-1 px-8 inline-block"
+                >
+                    <span class="text-gray-300 text-sm font-semibold"
+                        >PANTALLA</span
+                    >
+                </div>
+            </div>
+
+            <!-- Seats Grid -->
+            <div id="seats-container" class="mb-6">
+                <div class="text-center py-12">
+                    <div
+                        class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cine-red mx-auto"
+                    ></div>
+                    <p class="mt-4 text-gray-400">Cargando butacas...</p>
+                </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="bg-gray-800 rounded-lg p-4 mb-6">
+                <h3 class="font-semibold mb-3">Leyenda</h3>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                    <div class="flex items-center gap-2">
+                        <div
+                            class="w-6 h-6 bg-gray-600 border border-gray-500 rounded"
+                        ></div>
+                        <span>Disponible</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div
+                            class="w-6 h-6 bg-gray-800 border border-gray-700 rounded flex items-center justify-center"
+                        >
+                            <span class="text-gray-600 text-xs">X</span>
+                        </div>
+                        <span>Ocupada</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div
+                            class="w-6 h-6 bg-cine-red border border-red-600 rounded"
+                        ></div>
+                        <span>Seleccionada</span>
+                    </div>
+                    <!-- <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 bg-blue-600 border border-blue-500 rounded"></div>
+                        <span>Accesible</span>
+                    </div> -->
+                </div>
+            </div>
+
+            <!-- Ticket Quantity Selector -->
+            <div class="bg-gray-800 rounded-lg p-6 mb-6">
+                <h3 class="text-xl font-semibold mb-4">Cantidad de Entradas</h3>
+                <div class="flex flex-wrap items-center gap-4">
+                    <div class="flex items-center gap-2">
+                        <button
+                            id="quantity-decrease"
+                            class="w-9 h-9 bg-gray-700 hover:bg-gray-600 rounded flex items-center justify-center transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            type="button"
+                        >
+                            <span class="text-white text-xl leading-none"
+                                >−</span
+                            >
+                        </button>
+                        <input
+                            type="text"
+                            id="ticket-quantity"
+                            value="1"
+                            inputmode="numeric"
+                            readonly
+                            class="w-16 px-2 py-1 bg-gray-700 border border-gray-600 rounded text-center text-white font-semibold select-none"
+                        />
+                        <button
+                            id="quantity-increase"
+                            class="w-9 h-9 bg-cine-red hover:bg-red-700 rounded flex items-center justify-center transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            type="button"
+                        >
+                            <span class="text-white text-xl leading-none"
+                                >+</span
+                            >
+                        </button>
+                    </div>
+                    <div class="flex-1 min-w-[160px]">
+                        <div class="text-sm text-gray-400">
+                            Precio unitario:
+                            <span
+                                id="unit-price"
+                                class="text-white font-semibold"
+                                >$0</span
+                            >
+                        </div>
+                        <div class="text-lg font-bold text-cine-red">
+                            Total: <span id="total-price">$0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar: Summary -->
+        <div class="lg:col-span-1">
+            <div
+                id="purchase-summary"
+                class="bg-gray-800 rounded-lg p-6 sticky top-4"
+            >
+                <h2 class="text-2xl font-bold mb-4">Resumen</h2>
+                <div id="summary-content">
+                    <div class="text-center py-12 text-gray-400">
+                        Cargando resumen...
+                    </div>
+                </div>
+                <div class="mt-6">
+                    <button
+                        id="continue-seats-btn"
+                        disabled
+                        class="w-full bg-gray-600 text-gray-400 px-6 py-3 rounded font-bold cursor-not-allowed transition"
+                    >
+                        Continuar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

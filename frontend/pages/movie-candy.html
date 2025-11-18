@@ -1,0 +1,61 @@
+<div class="container mx-auto px-4 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Content: Products -->
+        <div class="lg:col-span-2">
+            <h1 class="text-3xl font-bold mb-6">Agregar Productos</h1>
+            
+            <div id="products-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                <div class="col-span-full text-center py-12">
+                    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cine-red mx-auto"></div>
+                    <p class="mt-4 text-gray-400">Cargando productos...</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Sidebar: Summary -->
+        <div class="lg:col-span-1">
+            <div id="purchase-summary" class="bg-gray-800 rounded-lg p-6 sticky top-4">
+                <h2 class="text-2xl font-bold mb-4">Resumen</h2>
+                <div id="summary-content">
+                    <div class="text-center py-12 text-gray-400">
+                        Cargando resumen...
+                    </div>
+                </div>
+                <div class="mt-6">
+                    <button 
+                        id="continue-candy-btn" 
+                        class="w-full bg-cine-red text-white px-6 py-3 rounded font-bold hover:bg-red-700 transition"
+                    >
+                        Continuar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Processing Payment Modal -->
+<div id="payment-processing-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+    <div class="bg-gray-800 rounded-lg p-8 max-w-md w-full mx-4">
+        <div class="text-center">
+            <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-cine-red mx-auto mb-4"></div>
+            <h2 class="text-2xl font-bold mb-2">Procesando tu pago</h2>
+            <p class="text-gray-400">Por favor espera...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Success Notification -->
+<div id="success-notification" class="hidden fixed top-4 right-4 bg-green-600 text-white px-6 py-4 rounded-lg shadow-lg z-50 max-w-md">
+    <div class="flex items-center gap-3">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        <div>
+            <p class="font-bold">¡Compra exitosa!</p>
+            <p class="text-sm">En breve te enviaremos un mail donde podrás ver el resumen de tu compra.</p>
+        </div>
+    </div>
+</div>
+
