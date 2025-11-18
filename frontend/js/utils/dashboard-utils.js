@@ -36,3 +36,52 @@ function updateDashboardNavLinks(activePath) {
     });
 }
 
+// Generic pagination function for CRUD tables
+window.renderPagination = function(paginaActual, totalPaginas, totalRegistros, onPageChange) {
+    if (totalPaginas <= 1 && paginaActual === 1) {
+        return ""; // No mostrar paginación si solo hay una página
+    }
+
+    return `
+        <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-700">
+            <div class="text-sm text-gray-400">
+                Página ${paginaActual} de ${totalPaginas} ${totalRegistros ? `(${totalRegistros} registros)` : ''}
+            </div>
+            <div class="flex gap-2">
+                <button 
+                    onclick="${onPageChange}(${Math.max(1, paginaActual - 1)})"
+                    ${paginaActual <= 1 ? 'disabled' : ''}
+                    class="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600 transition text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    ${paginaActual <= 1 ? 'style="pointer-events: none;"' : ''}
+                >
+                    Anterior
+                </button>
+                <button 
+                    onclick="${onPageChange}(${Math.min(totalPaginas, paginaActual + 1)})"
+                    ${paginaActual >= totalPaginas ? 'disabled' : ''}
+                    class="px-4 py-2 bg-cine-red rounded hover:bg-red-700 transition text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    ${paginaActual >= totalPaginas ? 'style="pointer-events: none;"' : ''}
+                >
+                    Siguiente
+                </button>
+            </div>
+        </div>
+    `;
+};
+
+// Helper function to paginate data on client side
+window.paginateData = function(data, pagina, tamañoPagina = 10) {
+    const inicio = (pagina - 1) * tamañoPagina;
+    const fin = inicio + tamañoPagina;
+    const datosPaginados = data.slice(inicio, fin);
+    const totalPaginas = Math.ceil(data.length / tamañoPagina);
+    
+    return {
+        datos: datosPaginados,
+        paginaActual: pagina,
+        totalPaginas: totalPaginas,
+        totalRegistros: data.length,
+        tamañoPagina: tamañoPagina
+    };
+};
+
