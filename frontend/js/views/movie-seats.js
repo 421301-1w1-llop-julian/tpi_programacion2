@@ -311,7 +311,6 @@ window.toggleSeat = function (seatId, row, number) {
     // Update summary immediately when seat is selected/deselected
     updateSeatsDisplay();
     updateTotalPrice();
-    updateContinueButton();
     
     // Re-render summary to ensure all information is up to date
     if (currentSeatsMovie && currentSeatsFunction) {
@@ -320,6 +319,12 @@ window.toggleSeat = function (seatId, row, number) {
         updateSeatsDisplay();
         updateTotalPrice();
     }
+    
+    // Update continue button after all DOM updates
+    // Use setTimeout to ensure DOM is fully updated
+    setTimeout(() => {
+        updateContinueButton();
+    }, 0);
 };
 
 function updateSeatsDisplay() {
@@ -382,14 +387,19 @@ function updateQuantityButtonsState() {
 
 function updateContinueButton() {
     const continueBtn = document.getElementById("continue-seats-btn");
-    if (!continueBtn) return;
+    if (!continueBtn) {
+        console.warn("Continue button not found");
+        return;
+    }
 
-    if (
+    const shouldEnable = 
         selectedSeats.length === ticketQuantity &&
         ticketQuantity > 0 &&
-        selectedSeats.length > 0
-    ) {
+        selectedSeats.length > 0;
+
+    if (shouldEnable) {
         continueBtn.disabled = false;
+        continueBtn.removeAttribute("disabled");
         continueBtn.classList.remove(
             "bg-gray-600",
             "text-gray-400",
@@ -403,6 +413,7 @@ function updateContinueButton() {
         );
     } else {
         continueBtn.disabled = true;
+        continueBtn.setAttribute("disabled", "disabled");
         continueBtn.classList.remove(
             "bg-cine-red",
             "text-white",
