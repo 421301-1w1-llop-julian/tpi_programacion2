@@ -332,21 +332,24 @@ window.toggleSeat = function (seatId, row, number) {
     updateSeatsDisplay();
     updateTotalPrice();
     
-    // Re-render summary to ensure all information is up to date
-    if (currentSeatsMovie && currentSeatsFunction) {
-        renderSummary(currentSeatsMovie, currentSeatsFunction);
-        // After re-rendering, update the seats display again since renderSummary recreates the element
-        updateSeatsDisplay();
-        updateTotalPrice();
-    }
-    
-    // Update continue button immediately (no need for setTimeout since we're not doing async operations)
+    // Update continue button FIRST, before re-rendering summary
     console.log("About to call updateContinueButton. State:", {
         selectedSeats: selectedSeats.length,
         ticketQuantity,
         shouldEnable: selectedSeats.length === ticketQuantity && ticketQuantity > 0 && selectedSeats.length > 0
     });
     updateContinueButton();
+    
+    // Re-render summary to ensure all information is up to date
+    // Do this AFTER updating the button so the button state persists
+    if (currentSeatsMovie && currentSeatsFunction) {
+        renderSummary(currentSeatsMovie, currentSeatsFunction);
+        // After re-rendering, update the seats display again since renderSummary recreates the element
+        updateSeatsDisplay();
+        updateTotalPrice();
+        // Update button again after summary render to ensure state is maintained
+        updateContinueButton();
+    }
 };
 
 function updateSeatsDisplay() {
@@ -422,24 +425,42 @@ function updateContinueButton() {
     console.log("updateContinueButton called:", {
         selectedSeats: selectedSeats.length,
         ticketQuantity,
-        shouldEnable
+        shouldEnable,
+        buttonExists: !!continueBtn,
+        currentDisabled: continueBtn.disabled,
+        currentClasses: continueBtn.className
     });
 
     if (shouldEnable) {
+        // Force enable the button
         continueBtn.disabled = false;
         continueBtn.removeAttribute("disabled");
+        
+        // Remove all disabled-related classes
         continueBtn.classList.remove(
             "bg-gray-600",
             "text-gray-400",
             "cursor-not-allowed"
         );
+        
+        // Add enabled classes
         continueBtn.classList.add(
             "bg-cine-red",
             "text-white",
             "hover:bg-red-700",
             "cursor-pointer"
         );
-        console.log("Button enabled");
+        
+        // Force style update
+        continueBtn.style.pointerEvents = "auto";
+        continueBtn.style.opacity = "1";
+        
+        console.log("Button enabled - After update:", {
+            disabled: continueBtn.disabled,
+            hasDisabledAttr: continueBtn.hasAttribute("disabled"),
+            classes: continueBtn.className,
+            computedStyle: window.getComputedStyle(continueBtn).pointerEvents
+        });
     } else {
         continueBtn.disabled = true;
         continueBtn.setAttribute("disabled", "disabled");
@@ -454,6 +475,7 @@ function updateContinueButton() {
             "text-gray-400",
             "cursor-not-allowed"
         );
+        continueBtn.style.pointerEvents = "none";
         console.log("Button disabled");
     }
 }
