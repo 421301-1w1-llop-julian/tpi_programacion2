@@ -27,7 +27,11 @@ public class DashboardRepository : IDashboardRepository
 
         // Obtener películas más vistas
         int top = filtros.TopPeliculas ?? 10;
-        dashboard.PeliculasMasVistas = await ObtenerPeliculasMasVistasAsync(top, filtros.FechaDesde, filtros.FechaHasta);
+        dashboard.PeliculasMasVistas = await ObtenerPeliculasMasVistasAsync(
+            top,
+            filtros.FechaDesde,
+            filtros.FechaHasta
+        );
 
         // Si solo se piden películas más vistas, no cargar otros datos
         if (filtros.SoloPeliculasMasVistas == true)
@@ -43,119 +47,60 @@ public class DashboardRepository : IDashboardRepository
         return dashboard;
     }
 
-    public async Task<List<PeliculaVistaDTO>> ObtenerPeliculasMasVistasAsync(int? top = null, DateTime? fechaDesde = null, DateTime? fechaHasta = null)
+    public async Task<List<PeliculaVistaDTO>> ObtenerPeliculasMasVistasAsync(
+        int? top = null,
+        DateTime? fechaDesde = null,
+        DateTime? fechaHasta = null)
     {
-        var queryReservas = _context.DetalleReservas
-            .Include(dr => dr.IdReservaNavigation)
-            .Include(dr => dr.IdFuncionNavigation)
-                .ThenInclude(f => f.IdPeliculaNavigation)
-            .AsQueryable();
-
-        var queryCompras = _context.DetallesCompras
+        var query = _context.DetallesCompras
             .Include(dc => dc.IdCompraNavigation)
             .Include(dc => dc.IdFuncionNavigation)
-                .ThenInclude(f => f.IdPeliculaNavigation)
+            .ThenInclude(f => f.IdPeliculaNavigation)
+            .Where(dc => dc.IdFuncionNavigation != null)
             .AsQueryable();
 
         if (fechaDesde.HasValue)
         {
-            queryReservas = queryReservas.Where(dr => dr.IdReservaNavigation.FechaHoraReserva >= fechaDesde.Value);
-            queryCompras = queryCompras.Where(dc => dc.IdCompraNavigation.FechaCompra >= fechaDesde.Value);
+            query = query.Where(dc =>
+                dc.IdCompraNavigation.FechaCompra >= fechaDesde.Value);
         }
 
         if (fechaHasta.HasValue)
         {
-            queryReservas = queryReservas.Where(dr => dr.IdReservaNavigation.FechaHoraReserva <= fechaHasta.Value);
-            queryCompras = queryCompras.Where(dc => dc.IdCompraNavigation.FechaCompra <= fechaHasta.Value);
+            query = query.Where(dc =>
+                dc.IdCompraNavigation.FechaCompra <= fechaHasta.Value);
         }
 
-        // Agrupar por película desde reservas
-        var reservasPorPelicula = await queryReservas
-            .Where(dr => dr.IdFuncionNavigation != null && dr.IdFuncionNavigation.IdPeliculaNavigation != null)
-            .GroupBy(dr => new { dr.IdFuncionNavigation.IdPelicula, dr.IdFuncionNavigation.IdPeliculaNavigation.Nombre })
-            .Select(g => new
+        var peliculas = await query
+            .GroupBy(dc => new
             {
-                IdPelicula = g.Key.IdPelicula,
-                Nombre = g.Key.Nombre,
-                TotalReservas = g.Count()
+                dc.IdFuncionNavigation.IdPelicula,
+                dc.IdFuncionNavigation.IdPeliculaNavigation.Nombre
             })
-            .ToListAsync();
-
-        // Agrupar por película desde compras
-        var comprasPorPelicula = await queryCompras
-            .Where(dc => dc.IdFuncion != null && dc.IdFuncionNavigation != null && dc.IdFuncionNavigation.IdPeliculaNavigation != null)
-            .GroupBy(dc => new { dc.IdFuncionNavigation.IdPelicula, dc.IdFuncionNavigation.IdPeliculaNavigation.Nombre })
-            .Select(g => new
+            .Select(g => new PeliculaVistaDTO
             {
                 IdPelicula = g.Key.IdPelicula,
                 Nombre = g.Key.Nombre,
                 TotalCompras = g.Sum(dc => dc.Cantidad),
-                Ingresos = g.Sum(dc => dc.PrecioUnitario * dc.Cantidad)
+                IngresosTotales = g.Sum(dc => dc.PrecioUnitario * dc.Cantidad)
             })
+            .OrderByDescending(p => p.TotalCompras)
             .ToListAsync();
 
-        // Combinar resultados
-        var peliculasDict = new Dictionary<int, PeliculaVistaDTO>();
-
-        foreach (var r in reservasPorPelicula)
-        {
-            if (!peliculasDict.ContainsKey(r.IdPelicula))
-            {
-                peliculasDict[r.IdPelicula] = new PeliculaVistaDTO
-                {
-                    IdPelicula = r.IdPelicula,
-                    Nombre = r.Nombre,
-                    TotalReservas = 0,
-                    TotalCompras = 0,
-                    IngresosTotales = 0
-                };
-            }
-            peliculasDict[r.IdPelicula].TotalReservas = r.TotalReservas;
-        }
-
-        foreach (var c in comprasPorPelicula)
-        {
-            if (!peliculasDict.ContainsKey(c.IdPelicula))
-            {
-                peliculasDict[c.IdPelicula] = new PeliculaVistaDTO
-                {
-                    IdPelicula = c.IdPelicula,
-                    Nombre = c.Nombre,
-                    TotalReservas = 0,
-                    TotalCompras = 0,
-                    IngresosTotales = 0
-                };
-            }
-            peliculasDict[c.IdPelicula].TotalCompras = c.TotalCompras;
-            peliculasDict[c.IdPelicula].IngresosTotales = c.Ingresos;
-        }
-
-        // Calcular total de vistas (reservas + compras)
-        foreach (var pelicula in peliculasDict.Values)
-        {
-            pelicula.TotalVistas = pelicula.TotalReservas + pelicula.TotalCompras;
-        }
-
-        var resultado = peliculasDict.Values
-            .OrderByDescending(p => p.TotalVistas)
-            .ToList();
-
         if (top.HasValue)
-        {
-            resultado = resultado.Take(top.Value).ToList();
-        }
+            peliculas = peliculas.Take(top.Value).ToList();
 
-        return resultado;
+        return peliculas;
     }
 
     public async Task<List<ReservaDTO>> ObtenerReservasAsync(FiltrosDashboardDTO filtros)
     {
-        var query = _context.Reservas
-            .Include(r => r.IdClienteNavigation)
+        var query = _context
+            .Reservas.Include(r => r.IdClienteNavigation)
             .Include(r => r.IdEstadoReservaNavigation)
             .Include(r => r.DetalleReservas)
-                .ThenInclude(dr => dr.IdFuncionNavigation)
-                    .ThenInclude(f => f.IdPeliculaNavigation)
+            .ThenInclude(dr => dr.IdFuncionNavigation)
+            .ThenInclude(f => f.IdPeliculaNavigation)
             .AsQueryable();
 
         if (filtros.FechaDesde.HasValue)
@@ -175,34 +120,43 @@ public class DashboardRepository : IDashboardRepository
 
         if (filtros.IdPelicula.HasValue)
         {
-            query = query.Where(r => r.DetalleReservas.Any(dr => dr.IdFuncionNavigation.IdPelicula == filtros.IdPelicula.Value));
+            query = query.Where(r =>
+                r.DetalleReservas.Any(dr =>
+                    dr.IdFuncionNavigation.IdPelicula == filtros.IdPelicula.Value
+                )
+            );
         }
 
         var reservas = await query.ToListAsync();
 
-        return reservas.Select(r => new ReservaDTO
-        {
-            IdReserva = r.IdReserva,
-            IdCliente = r.IdCliente,
-            NombreCliente = r.IdClienteNavigation != null 
-                ? $"{r.IdClienteNavigation.Nombre} {r.IdClienteNavigation.Apellido}".Trim()
-                : "N/A",
-            FechaHoraReserva = r.FechaHoraReserva,
-            FechaHoraVencimiento = r.FechaHoraVencimiento,
-            EstadoReserva = r.IdEstadoReservaNavigation?.Nombre ?? "N/A",
-            Pelicula = r.DetalleReservas.FirstOrDefault()?.IdFuncionNavigation?.IdPeliculaNavigation?.Nombre ?? "N/A",
-            CantidadButacas = r.DetalleReservas.Count
-        }).ToList();
+        return reservas
+            .Select(r => new ReservaDTO
+            {
+                IdReserva = r.IdReserva,
+                IdCliente = r.IdCliente,
+                NombreCliente =
+                    r.IdClienteNavigation != null
+                        ? $"{r.IdClienteNavigation.Nombre} {r.IdClienteNavigation.Apellido}".Trim()
+                        : "N/A",
+                FechaHoraReserva = r.FechaHoraReserva,
+                FechaHoraVencimiento = r.FechaHoraVencimiento,
+                EstadoReserva = r.IdEstadoReservaNavigation?.Nombre ?? "N/A",
+                Pelicula =
+                    r.DetalleReservas.FirstOrDefault()?.IdFuncionNavigation?.IdPeliculaNavigation?.Nombre
+                    ?? "N/A",
+                CantidadButacas = r.DetalleReservas.Count,
+            })
+            .ToList();
     }
 
     public async Task<List<CompraDTO>> ObtenerComprasAsync(FiltrosDashboardDTO filtros)
     {
-        var query = _context.Compras
-            .Include(c => c.IdClienteNavigation)
+        var query = _context
+            .Compras.Include(c => c.IdClienteNavigation)
             .Include(c => c.IdFormaPagoNavigation)
             .Include(c => c.DetallesCompras)
-                .ThenInclude(dc => dc.IdFuncionNavigation)
-                    .ThenInclude(f => f.IdPeliculaNavigation)
+            .ThenInclude(dc => dc.IdFuncionNavigation)
+            .ThenInclude(f => f.IdPeliculaNavigation)
             .AsQueryable();
 
         if (filtros.FechaDesde.HasValue)
@@ -222,142 +176,130 @@ public class DashboardRepository : IDashboardRepository
 
         if (filtros.IdPelicula.HasValue)
         {
-            query = query.Where(c => c.DetallesCompras.Any(dc => dc.IdFuncionNavigation != null && dc.IdFuncionNavigation.IdPelicula == filtros.IdPelicula.Value));
+            query = query.Where(c =>
+                c.DetallesCompras.Any(dc =>
+                    dc.IdFuncionNavigation != null
+                    && dc.IdFuncionNavigation.IdPelicula == filtros.IdPelicula.Value
+                )
+            );
         }
 
         var compras = await query.ToListAsync();
 
-        return compras.Select(c => new CompraDTO
-        {
-            IdCompra = c.IdCompra,
-            IdCliente = c.IdCliente,
-            NombreCliente = c.IdClienteNavigation != null 
-                ? $"{c.IdClienteNavigation.Nombre} {c.IdClienteNavigation.Apellido}".Trim()
-                : "N/A",
-            FechaCompra = c.FechaCompra,
-            FormaPago = c.IdFormaPagoNavigation?.Descripcion ?? "N/A",
-            Estado = c.Estado,
-            Total = c.DetallesCompras.Sum(dc => dc.PrecioUnitario * dc.Cantidad),
-            Pelicula = c.DetallesCompras.FirstOrDefault(dc => dc.IdFuncionNavigation != null)?.IdFuncionNavigation?.IdPeliculaNavigation?.Nombre ?? "N/A"
-        }).ToList();
+        return compras
+            .Select(c => new CompraDTO
+            {
+                IdCompra = c.IdCompra,
+                IdCliente = c.IdCliente,
+                NombreCliente =
+                    c.IdClienteNavigation != null
+                        ? $"{c.IdClienteNavigation.Nombre} {c.IdClienteNavigation.Apellido}".Trim()
+                        : "N/A",
+                FechaCompra = c.FechaCompra,
+                FormaPago = c.IdFormaPagoNavigation?.Descripcion ?? "N/A",
+                Estado = c.Estado,
+                Total = c.DetallesCompras.Sum(dc => dc.PrecioUnitario * dc.Cantidad),
+                Pelicula =
+                    c.DetallesCompras.FirstOrDefault(dc =>
+                        dc.IdFuncionNavigation != null
+                    )?.IdFuncionNavigation?.IdPeliculaNavigation?.Nombre
+                    ?? "N/A",
+            })
+            .ToList();
     }
 
-    public async Task<RespuestaPaginadaDTO<CompraDTO>> ObtenerComprasPaginadasAsync(FiltrosDashboardDTO filtros)
+    public async Task<RespuestaPaginadaDTO<CompraDTO>> ObtenerComprasPaginadasAsync(
+        FiltrosDashboardDTO filtros
+    )
     {
-        var query = _context.Compras
-            .Include(c => c.IdClienteNavigation)
-            .Include(c => c.IdFormaPagoNavigation)
-            .Include(c => c.DetallesCompras)
-                .ThenInclude(dc => dc.IdFuncionNavigation)
-                    .ThenInclude(f => f.IdPeliculaNavigation)
-            .AsQueryable();
-
-        if (filtros.FechaDesde.HasValue)
-        {
-            query = query.Where(c => c.FechaCompra >= filtros.FechaDesde.Value);
-        }
-
-        if (filtros.FechaHasta.HasValue)
-        {
-            query = query.Where(c => c.FechaCompra <= filtros.FechaHasta.Value);
-        }
-
-        if (filtros.IdCliente.HasValue)
-        {
-            query = query.Where(c => c.IdCliente == filtros.IdCliente.Value);
-        }
-
-        if (filtros.IdPelicula.HasValue)
-        {
-            query = query.Where(c => c.DetallesCompras.Any(dc => dc.IdFuncionNavigation != null && dc.IdFuncionNavigation.IdPelicula == filtros.IdPelicula.Value));
-        }
-
-        // Aplicar filtros de monto basándose en el total de la compra
-        // Primero necesitamos calcular el total para cada compra y luego filtrar
-        // Para hacer esto eficientemente, primero obtenemos todas las compras que cumplen los otros filtros
-        var comprasConTotales = await query.ToListAsync();
-        
-        // Calcular el total para cada compra y aplicar filtros de monto
-        var comprasConTotalesCalculados = comprasConTotales
-            .Select(c => new
-            {
-                Compra = c,
-                Total = c.DetallesCompras.Sum(dc => dc.PrecioUnitario * dc.Cantidad)
-            })
-            .ToList();
-        
-        // Debug: Verificar que los filtros se están recibiendo
-        // Console.WriteLine($"MontoMinimo: {filtros.MontoMinimo}, MontoMaximo: {filtros.MontoMaximo}");
-        
-        // Aplicar filtros de monto
-        var comprasFiltradas = comprasConTotalesCalculados
-            .Where(x => 
-            {
-                bool cumpleMinimo = !filtros.MontoMinimo.HasValue || x.Total >= filtros.MontoMinimo.Value;
-                bool cumpleMaximo = !filtros.MontoMaximo.HasValue || x.Total <= filtros.MontoMaximo.Value;
-                return cumpleMinimo && cumpleMaximo;
-            })
-            .Select(x => x.Compra)
-            .OrderByDescending(c => c.FechaCompra)
-            .ToList();
-
-        // Obtener total de registros después de aplicar todos los filtros
-        var totalRegistros = comprasFiltradas.Count;
-
-        // Aplicar paginación
         int pagina = filtros.Pagina ?? 1;
         int tamañoPagina = filtros.TamañoPagina ?? 10;
-        
-        // Calcular total de páginas
-        var totalPaginas = totalRegistros > 0 ? (int)Math.Ceiling(totalRegistros / (double)tamañoPagina) : 1;
-        
-        // Validar que la página solicitada no exceda el total de páginas
-        if (pagina > totalPaginas && totalPaginas > 0)
-        {
-            pagina = totalPaginas;
-        }
-        if (pagina < 1)
-        {
-            pagina = 1;
-        }
-        
-        // Aplicar paginación: Skip y Take deben aplicarse ANTES de convertir a lista
-        var comprasPaginadas = comprasFiltradas
+
+        var query = _context
+            .Compras.Include(c => c.IdClienteNavigation)
+            .Include(c => c.IdFormaPagoNavigation)
+            .Include(c => c.DetallesCompras)
+            .ThenInclude(dc => dc.IdFuncionNavigation)
+            .ThenInclude(f => f.IdPeliculaNavigation)
+            .AsQueryable();
+
+        // --- Filtros SQL ---
+        if (filtros.FechaDesde.HasValue)
+            query = query.Where(c => c.FechaCompra >= filtros.FechaDesde.Value);
+
+        if (filtros.FechaHasta.HasValue)
+            query = query.Where(c => c.FechaCompra <= filtros.FechaHasta.Value);
+
+        if (filtros.IdCliente.HasValue)
+            query = query.Where(c => c.IdCliente == filtros.IdCliente.Value);
+
+        if (filtros.IdPelicula.HasValue)
+            query = query.Where(c =>
+                c.DetallesCompras.Any(dc => dc.IdFuncionNavigation.IdPelicula == filtros.IdPelicula)
+            );
+
+        // Filtro de monto mediante agregación SQL
+        if (filtros.MontoMinimo.HasValue)
+            query = query.Where(c =>
+                c.DetallesCompras.Sum(dc => dc.PrecioUnitario * dc.Cantidad)
+                >= filtros.MontoMinimo.Value
+            );
+
+        if (filtros.MontoMaximo.HasValue)
+            query = query.Where(c =>
+                c.DetallesCompras.Sum(dc => dc.PrecioUnitario * dc.Cantidad)
+                <= filtros.MontoMaximo.Value
+            );
+
+        // Total filtrado (SQL)
+        int totalRegistros = await query.CountAsync();
+
+        // Ordenamiento
+        query = query.OrderByDescending(c => c.FechaCompra);
+
+        // Paginación real en SQL
+        var compras = await query
             .Skip((pagina - 1) * tamañoPagina)
             .Take(tamañoPagina)
-            .ToList();
-        
-        // Verificar que la paginación se aplicó correctamente
-        // Si comprasPaginadas.Count > tamañoPagina, hay un problema
+            .ToListAsync();
 
-        var comprasDTO = comprasPaginadas.Select(c => new CompraDTO
-        {
-            IdCompra = c.IdCompra,
-            IdCliente = c.IdCliente,
-            NombreCliente = c.IdClienteNavigation != null 
-                ? $"{c.IdClienteNavigation.Nombre} {c.IdClienteNavigation.Apellido}".Trim()
-                : "N/A",
-            FechaCompra = c.FechaCompra,
-            FormaPago = c.IdFormaPagoNavigation?.Descripcion ?? "N/A",
-            Estado = c.Estado,
-            Total = c.DetallesCompras.Sum(dc => dc.PrecioUnitario * dc.Cantidad),
-            Pelicula = c.DetallesCompras.FirstOrDefault(dc => dc.IdFuncionNavigation != null)?.IdFuncionNavigation?.IdPeliculaNavigation?.Nombre ?? "N/A"
-        }).ToList();
+        // Mapear DTOs
+        var comprasDTO = compras
+            .Select(c => new CompraDTO
+            {
+                IdCompra = c.IdCompra,
+                IdCliente = c.IdCliente,
+                NombreCliente =
+                    c.IdClienteNavigation != null
+                        ? $"{c.IdClienteNavigation.Nombre} {c.IdClienteNavigation.Apellido}".Trim()
+                        : "N/A",
+                FechaCompra = c.FechaCompra,
+                FormaPago = c.IdFormaPagoNavigation?.Descripcion ?? "N/A",
+                Estado = c.Estado,
+                Total = c.DetallesCompras.Sum(dc => dc.PrecioUnitario * dc.Cantidad),
+                Pelicula =
+                    c.DetallesCompras.Select(dc =>
+                            dc.IdFuncionNavigation?.IdPeliculaNavigation?.Nombre
+                        )
+                        .FirstOrDefault(nombre => nombre != null)
+                    ?? "N/A", // si hay varias películas, toma la primera
+            })
+            .ToList();
 
         return new RespuestaPaginadaDTO<CompraDTO>
         {
             Datos = comprasDTO,
             PaginaActual = pagina,
             TamañoPagina = tamañoPagina,
-            TotalPaginas = totalPaginas,
-            TotalRegistros = totalRegistros
+            TotalPaginas = (int)Math.Ceiling(totalRegistros / (double)tamañoPagina),
+            TotalRegistros = totalRegistros,
         };
     }
 
     public async Task<List<FuncionDTO>> ObtenerFuncionesAsync(FiltrosDashboardDTO filtros)
     {
-        var query = _context.Funciones
-            .Include(f => f.IdPeliculaNavigation)
+        var query = _context
+            .Funciones.Include(f => f.IdPeliculaNavigation)
             .Include(f => f.IdSalaNavigation)
             .Include(f => f.ButacasFuncions)
             .AsQueryable();
@@ -384,18 +326,18 @@ public class DashboardRepository : IDashboardRepository
 
         var funciones = await query.ToListAsync();
 
-        return funciones.Select(f => new FuncionDTO
-        {
-            IdFuncion = f.IdFuncion,
-            Pelicula = f.IdPeliculaNavigation?.Nombre ?? "N/A",
-            Sala = f.IdSalaNavigation != null 
-                ? $"Sala {f.IdSalaNavigation.NumeroSala}"
-                : "N/A",
-            FechaHoraInicio = f.FechaHoraInicio,
-            PrecioBase = f.PrecioBase,
-            ButacasOcupadas = f.ButacasFuncions.Count(bf => bf.IdEstadoButaca != 1), // 1 = Libre
-            ButacasDisponibles = f.ButacasFuncions.Count(bf => bf.IdEstadoButaca == 1)
-        }).ToList();
+        return funciones
+            .Select(f => new FuncionDTO
+            {
+                IdFuncion = f.IdFuncion,
+                Pelicula = f.IdPeliculaNavigation?.Nombre ?? "N/A",
+                Sala = f.IdSalaNavigation != null ? $"Sala {f.IdSalaNavigation.NumeroSala}" : "N/A",
+                FechaHoraInicio = f.FechaHoraInicio,
+                PrecioBase = f.PrecioBase,
+                ButacasOcupadas = f.ButacasFuncions.Count(bf => bf.IdEstadoButaca != 1), // 1 = Libre
+                ButacasDisponibles = f.ButacasFuncions.Count(bf => bf.IdEstadoButaca == 1),
+            })
+            .ToList();
     }
 
     private async Task<int> ObtenerTotalReservasAsync(FiltrosDashboardDTO filtros)
@@ -404,8 +346,8 @@ public class DashboardRepository : IDashboardRepository
 
         if (filtros.IdPelicula.HasValue)
         {
-            query = _context.Reservas
-                .Include(r => r.DetalleReservas)
+            query = _context
+                .Reservas.Include(r => r.DetalleReservas)
                 .ThenInclude(dr => dr.IdFuncionNavigation)
                 .AsQueryable();
         }
@@ -427,7 +369,11 @@ public class DashboardRepository : IDashboardRepository
 
         if (filtros.IdPelicula.HasValue)
         {
-            query = query.Where(r => r.DetalleReservas.Any(dr => dr.IdFuncionNavigation.IdPelicula == filtros.IdPelicula.Value));
+            query = query.Where(r =>
+                r.DetalleReservas.Any(dr =>
+                    dr.IdFuncionNavigation.IdPelicula == filtros.IdPelicula.Value
+                )
+            );
         }
 
         return await query.CountAsync();
@@ -439,8 +385,8 @@ public class DashboardRepository : IDashboardRepository
 
         if (filtros.IdPelicula.HasValue)
         {
-            query = _context.Compras
-                .Include(c => c.DetallesCompras)
+            query = _context
+                .Compras.Include(c => c.DetallesCompras)
                 .ThenInclude(dc => dc.IdFuncionNavigation)
                 .AsQueryable();
         }
@@ -462,7 +408,12 @@ public class DashboardRepository : IDashboardRepository
 
         if (filtros.IdPelicula.HasValue)
         {
-            query = query.Where(c => c.DetallesCompras.Any(dc => dc.IdFuncionNavigation != null && dc.IdFuncionNavigation.IdPelicula == filtros.IdPelicula.Value));
+            query = query.Where(c =>
+                c.DetallesCompras.Any(dc =>
+                    dc.IdFuncionNavigation != null
+                    && dc.IdFuncionNavigation.IdPelicula == filtros.IdPelicula.Value
+                )
+            );
         }
 
         return await query.CountAsync();
@@ -497,8 +448,9 @@ public class DashboardRepository : IDashboardRepository
 
     private async Task<decimal> ObtenerIngresosTotalesAsync(FiltrosDashboardDTO filtros)
     {
-        IQueryable<DetallesCompra> queryable = _context.DetallesCompras
-            .Include(dc => dc.IdCompraNavigation);
+        IQueryable<DetallesCompra> queryable = _context.DetallesCompras.Include(dc =>
+            dc.IdCompraNavigation
+        );
 
         if (filtros.IdPelicula.HasValue)
         {
@@ -507,25 +459,33 @@ public class DashboardRepository : IDashboardRepository
 
         if (filtros.FechaDesde.HasValue)
         {
-            queryable = queryable.Where(dc => dc.IdCompraNavigation.FechaCompra >= filtros.FechaDesde.Value);
+            queryable = queryable.Where(dc =>
+                dc.IdCompraNavigation.FechaCompra >= filtros.FechaDesde.Value
+            );
         }
 
         if (filtros.FechaHasta.HasValue)
         {
-            queryable = queryable.Where(dc => dc.IdCompraNavigation.FechaCompra <= filtros.FechaHasta.Value);
+            queryable = queryable.Where(dc =>
+                dc.IdCompraNavigation.FechaCompra <= filtros.FechaHasta.Value
+            );
         }
 
         if (filtros.IdCliente.HasValue)
         {
-            queryable = queryable.Where(dc => dc.IdCompraNavigation.IdCliente == filtros.IdCliente.Value);
+            queryable = queryable.Where(dc =>
+                dc.IdCompraNavigation.IdCliente == filtros.IdCliente.Value
+            );
         }
 
         if (filtros.IdPelicula.HasValue)
         {
-            queryable = queryable.Where(dc => dc.IdFuncionNavigation != null && dc.IdFuncionNavigation.IdPelicula == filtros.IdPelicula.Value);
+            queryable = queryable.Where(dc =>
+                dc.IdFuncionNavigation != null
+                && dc.IdFuncionNavigation.IdPelicula == filtros.IdPelicula.Value
+            );
         }
 
         return await queryable.SumAsync(dc => dc.PrecioUnitario * dc.Cantidad);
     }
 }
-

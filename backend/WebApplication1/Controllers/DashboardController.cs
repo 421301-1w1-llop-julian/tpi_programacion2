@@ -79,25 +79,21 @@ public class DashboardController : ControllerBase
     {
         try
         {
-            // Debug: Verificar que los filtros se están recibiendo
-            // Los logs se pueden ver en la consola del servidor o en los logs de la aplicación
-            
-            // Si se solicita paginación, usar el método paginado
-            if (filtros.Pagina.HasValue || filtros.TamañoPagina.HasValue)
-            {
-                var comprasPaginadas = await _dashboardService.ObtenerComprasPaginadasAsync(filtros);
-                return Ok(comprasPaginadas);
-            }
-            
-            // Si no se solicita paginación, devolver todas las compras (comportamiento anterior)
-            var dashboard = await _dashboardService.ObtenerDashboardAsync(filtros);
-            return Ok(dashboard.Compras);
+            // Si no llegan valores, poner los defaults
+            filtros.Pagina ??= 1;
+            filtros.TamañoPagina ??= 10;
+
+            // Siempre se devuelve paginado
+            var comprasPaginadas = await _dashboardService.ObtenerComprasPaginadasAsync(filtros);
+
+            return Ok(comprasPaginadas);
         }
         catch (Exception ex)
         {
             return StatusCode(500, new { error = "Error al obtener las compras", message = ex.Message });
         }
     }
+
 
     /// <summary>
     /// Obtiene todas las funciones con filtros opcionales
