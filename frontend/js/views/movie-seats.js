@@ -27,6 +27,7 @@ async function movieSeatsViewHandler(params, queryParams) {
         currentSeatsMovie = movie;
         currentSeatsFunction = funcion;
         currentSeatsData = seats; // Store seats data
+        seatsContainerListenerAttached = false; // Reset listener flag
         unitPrice = funcion.precioBase || 0;
         ticketQuantity = 1; // Reset quantity
         selectedSeats = []; // Reset selected seats
@@ -177,9 +178,26 @@ function renderSummary(movie, funcion) {
     `;
 }
 
+// Store seats container reference and ensure single event listener
+let seatsContainerListenerAttached = false;
+
 function renderSeats(seats) {
     const container = document.getElementById("seats-container");
     if (!container) return;
+    
+    // Attach event listener only once using event delegation
+    if (!seatsContainerListenerAttached) {
+        container.addEventListener("click", (e) => {
+            const button = e.target.closest("button[data-seat-action='toggle']");
+            if (button && !button.disabled) {
+                const seatId = parseInt(button.dataset.seatId);
+                const row = button.dataset.seatRow;
+                const number = parseInt(button.dataset.seatNumber);
+                toggleSeat(seatId, row, number);
+            }
+        });
+        seatsContainerListenerAttached = true;
+    }
 
     // Group seats by row
     // Seats may come as ButacasFuncion objects with IdButacaNavigation
@@ -261,9 +279,7 @@ function renderSeats(seats) {
                                                 seat.numeroButaca
                                             }"
                                             ${isOccupied ? "disabled" : ""}
-                                            onclick="toggleSeat(${
-                                                seat.idButaca
-                                            }, '${row}', ${seat.numeroButaca})"
+                                            data-seat-action="toggle"
                                         >
                                             ${seatContent}
                                         </button>
@@ -281,12 +297,15 @@ function renderSeats(seats) {
 
 // Global function for seat selection
 window.toggleSeat = function (seatId, row, number) {
+    console.log("toggleSeat called:", { seatId, row, number, currentSelected: selectedSeats.length, ticketQuantity });
+    
     if (selectedSeats.includes(seatId)) {
         selectedSeats = selectedSeats.filter((id) => id !== seatId);
         // Remove from seat info
         if (window.selectedSeatsInfo) {
             delete window.selectedSeatsInfo[seatId];
         }
+        console.log("Seat deselected. New count:", selectedSeats.length);
     } else {
         if (selectedSeats.length >= ticketQuantity) {
             showNotification(
@@ -301,6 +320,7 @@ window.toggleSeat = function (seatId, row, number) {
             window.selectedSeatsInfo = {};
         }
         window.selectedSeatsInfo[seatId] = { fila: row, numero: number };
+        console.log("Seat selected. New count:", selectedSeats.length);
     }
 
     // Re-render seats to update visual state (use cached seats data)
@@ -321,6 +341,11 @@ window.toggleSeat = function (seatId, row, number) {
     }
     
     // Update continue button immediately (no need for setTimeout since we're not doing async operations)
+    console.log("About to call updateContinueButton. State:", {
+        selectedSeats: selectedSeats.length,
+        ticketQuantity,
+        shouldEnable: selectedSeats.length === ticketQuantity && ticketQuantity > 0 && selectedSeats.length > 0
+    });
     updateContinueButton();
 };
 
