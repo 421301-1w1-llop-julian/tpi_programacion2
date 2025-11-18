@@ -42,6 +42,7 @@ builder.Services.AddScoped<ITipoPublicoRepository, TipoPublicoRepository>();
 builder.Services.AddScoped<IFuncionRepository, FuncionRepository>();
 builder.Services.AddScoped<IButacaRepository, ButacaRepository>();
 builder.Services.AddScoped<IButacasFuncionRepository, ButacasFuncionRepository>();
+builder.Services.AddScoped<ISalaRepository, SalaRepository>();
 
 
 
@@ -63,6 +64,7 @@ builder.Services.AddScoped<ITipoPublicoService, TipoPublicoService>();
 builder.Services.AddScoped<IFuncionService, FuncionService>();
 builder.Services.AddScoped<IButacaService, ButacaService>();
 builder.Services.AddScoped<IButacasFuncionService, ButacasFuncionService>();
+builder.Services.AddScoped<ISalaService, SalaService>();
 
 // --- JWT Authentication ---
 builder
