@@ -174,13 +174,10 @@ const api = {
         if (filters.idPelicula) params.append("idPelicula", filters.idPelicula);
         if (filters.idCliente) params.append("idCliente", filters.idCliente);
         if (filters.idSala) params.append("idSala", filters.idSala);
-        
-        const response = await fetch(
-            `${API_BASE_URL}/Dashboard?${params}`,
-            {
-                headers: getHeaders(),
-            }
-        );
+
+        const response = await fetch(`${API_BASE_URL}/Dashboard?${params}`, {
+            headers: getHeaders(),
+        });
         if (!response.ok) throw new Error("Error al cargar analíticas");
         return await response.json();
     },
@@ -191,17 +188,25 @@ const api = {
         if (filters.fechaHasta) params.append("fechaHasta", filters.fechaHasta);
         if (filters.idPelicula) params.append("idPelicula", filters.idPelicula);
         if (filters.idCliente) params.append("idCliente", filters.idCliente);
-        
+
         // Agregar filtros de monto
-        if (filters.montoMinimo !== undefined && filters.montoMinimo !== null && !isNaN(filters.montoMinimo)) {
+        if (
+            filters.montoMinimo !== undefined &&
+            filters.montoMinimo !== null &&
+            !isNaN(filters.montoMinimo)
+        ) {
             params.append("MontoMinimo", filters.montoMinimo.toString());
             console.log("Enviando MontoMinimo:", filters.montoMinimo);
         }
-        if (filters.montoMaximo !== undefined && filters.montoMaximo !== null && !isNaN(filters.montoMaximo)) {
+        if (
+            filters.montoMaximo !== undefined &&
+            filters.montoMaximo !== null &&
+            !isNaN(filters.montoMaximo)
+        ) {
             params.append("MontoMaximo", filters.montoMaximo.toString());
             console.log("Enviando MontoMaximo:", filters.montoMaximo);
         }
-        
+
         // Agregar parámetros de paginación solo si se proporcionan
         if (pagina !== null) {
             params.append("Pagina", pagina.toString());
@@ -209,14 +214,55 @@ const api = {
         if (tamañoPagina !== null) {
             params.append("TamañoPagina", tamañoPagina.toString());
         }
-        
+
         const url = `${API_BASE_URL}/Dashboard/compras?${params}`;
         console.log("URL de petición:", url);
-        
+
         const response = await fetch(url, {
             headers: getHeaders(),
         });
         if (!response.ok) throw new Error("Error al cargar compras");
+        return await response.json();
+    },
+
+    async getPeliculaMasVista(filters = {}) {
+        const params = new URLSearchParams();
+
+        if (filters.fechaDesde) params.append("fechaDesde", filters.fechaDesde);
+        if (filters.fechaHasta) params.append("fechaHasta", filters.fechaHasta);
+        if (filters.idPelicula) params.append("idPelicula", filters.idPelicula);
+        if (filters.idCliente) params.append("idCliente", filters.idCliente);
+
+        // Filtros de monto
+        if (
+            filters.montoMinimo !== undefined &&
+            filters.montoMinimo !== null &&
+            !isNaN(filters.montoMinimo)
+        ) {
+            params.append("MontoMinimo", filters.montoMinimo.toString());
+            console.log("Enviando MontoMinimo:", filters.montoMinimo);
+        }
+        if (
+            filters.montoMaximo !== undefined &&
+            filters.montoMaximo !== null &&
+            !isNaN(filters.montoMaximo)
+        ) {
+            params.append("MontoMaximo", filters.montoMaximo.toString());
+            console.log("Enviando MontoMaximo:", filters.montoMaximo);
+        }
+
+        // Como esto NO es paginado, no enviamos Pagina ni TamañoPagina
+
+        const url = `${API_BASE_URL}/Dashboard/pelicula-mas-vista?${params}`;
+        console.log("URL de petición (película más vista):", url);
+
+        const response = await fetch(url, {
+            headers: getHeaders(),
+        });
+
+        if (!response.ok)
+            throw new Error("Error al cargar la película más vista");
+
         return await response.json();
     },
 
@@ -235,7 +281,10 @@ const api = {
     },
 
     async updateMovie(id, data) {
-        console.log(`Updating movie ${id} at ${API_BASE_URL}/Pelicula/${id}`, data);
+        console.log(
+            `Updating movie ${id} at ${API_BASE_URL}/Pelicula/${id}`,
+            data
+        );
         const response = await fetch(`${API_BASE_URL}/Pelicula/${id}`, {
             method: "PUT",
             headers: getHeaders(),
@@ -244,7 +293,9 @@ const api = {
         if (!response.ok) {
             const errorText = await response.text();
             console.error("Update error:", response.status, errorText);
-            throw new Error(`Error al actualizar película: ${response.status} ${errorText}`);
+            throw new Error(
+                `Error al actualizar película: ${response.status} ${errorText}`
+            );
         }
         return await response.json();
     },
@@ -269,7 +320,10 @@ const api = {
     },
 
     async updateProduct(id, data) {
-        console.log(`Updating product ${id} at ${API_BASE_URL}/productos/${id}`, data);
+        console.log(
+            `Updating product ${id} at ${API_BASE_URL}/productos/${id}`,
+            data
+        );
         const response = await fetch(`${API_BASE_URL}/productos/${id}`, {
             method: "PUT",
             headers: getHeaders(),
@@ -288,7 +342,9 @@ const api = {
                 errorText = `Status ${response.status}`;
             }
             console.error("Update error:", response.status, errorText);
-            throw new Error(`Error al actualizar producto: ${response.status} ${errorText}`);
+            throw new Error(
+                `Error al actualizar producto: ${response.status} ${errorText}`
+            );
         }
         // El backend devuelve NoContent (204), no hay JSON que parsear
         // Verificar el status code y el content-type antes de intentar parsear
@@ -420,7 +476,10 @@ const api = {
     },
 
     async updateActor(id, data) {
-        console.log(`Updating actor ${id} at ${API_BASE_URL}/Actor/${id}`, data);
+        console.log(
+            `Updating actor ${id} at ${API_BASE_URL}/Actor/${id}`,
+            data
+        );
         const response = await fetch(`${API_BASE_URL}/Actor/${id}`, {
             method: "PUT",
             headers: getHeaders(),
@@ -437,7 +496,9 @@ const api = {
                 errorText = `Status ${response.status}`;
             }
             console.error("Update error:", response.status, errorText);
-            throw new Error(`Error al actualizar actor: ${response.status} ${errorText}`);
+            throw new Error(
+                `Error al actualizar actor: ${response.status} ${errorText}`
+            );
         }
         // El backend devuelve NoContent (204), no hay JSON que parsear
         if (response.status === 204) {

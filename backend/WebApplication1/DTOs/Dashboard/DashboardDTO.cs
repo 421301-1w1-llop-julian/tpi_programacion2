@@ -2,15 +2,10 @@ namespace WebApplication1.DTOs.Dashboard;
 
 public class DashboardDTO
 {
-    public int TotalReservas { get; set; }
-    public int TotalCompras { get; set; }
-    public int TotalFunciones { get; set; }
-    public int TotalPeliculas { get; set; }
     public decimal IngresosTotales { get; set; }
-    public List<PeliculaVistaDTO> PeliculasMasVistas { get; set; } = new();
-    public List<ReservaDTO> Reservas { get; set; } = new();
-    public List<CompraDTO> Compras { get; set; } = new();
-    public List<FuncionDTO> Funciones { get; set; } = new();
+    public PeliculaVistaDTO PeliculaMasVista { get; set; } = new();
+    public decimal EntradasVendidas{ get; set; }
+    public decimal IngresoPromedioFuncion { get; set; }
 }
 
 public class PeliculaVistaDTO

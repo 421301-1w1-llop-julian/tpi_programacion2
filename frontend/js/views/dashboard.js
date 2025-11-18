@@ -125,34 +125,35 @@ async function dashboardViewHandler() {
         // Calculate metrics usando valores del analytics (totales completos)
         const totalVendido =
             analytics.ingresosTotales || analytics.IngresosTotales || 0;
-        const funcionesVendidas =
-            analytics.totalFunciones || analytics.TotalFunciones || 0;
+
         // Usar el total de compras del analytics o del total de registros paginados
         const entradasVendidas =
             analytics.totalCompras || analytics.TotalCompras || totalCompras;
-        const promedioPorFuncion =
-            funcionesVendidas > 0 ? totalVendido / funcionesVendidas : 0;
 
         // Update analytics cards
         cardsContainer.innerHTML = `
             <div class="bg-cine-gray rounded-lg p-6 shadow-lg">
                 <h3 class="text-gray-400 mb-2 text-sm uppercase tracking-wide">Total Vendido</h3>
                 <p class="text-3xl font-bold text-white">${formatCurrency(
-                    totalVendido
+                    analytics.ingresosTotales
                 )}</p>
             </div>
             <div class="bg-cine-gray rounded-lg p-6 shadow-lg">
                 <h3 class="text-gray-400 mb-2 text-sm uppercase tracking-wide">Pelicula más vista</h3>
-                <p class="text-3xl font-bold text-white">${Pelicula}</p>
+                <p class="text-3xl font-bold text-white">${
+                    analytics.peliculaMasVista.nombre || "N/A"
+                }</p>
             </div>
             <div class="bg-cine-gray rounded-lg p-6 shadow-lg">
                 <h3 class="text-gray-400 mb-2 text-sm uppercase tracking-wide">Entradas Vendidas</h3>
-                <p class="text-3xl font-bold text-white">${entradasVendidas}</p>
+                <p class="text-3xl font-bold text-white">${
+                    analytics.entradasVendidas
+                }</p>
             </div>
             <div class="bg-cine-gray rounded-lg p-6 shadow-lg">
                 <h3 class="text-gray-400 mb-2 text-sm uppercase tracking-wide">Promedio por Función</h3>
                 <p class="text-3xl font-bold text-white">${formatCurrency(
-                    promedioPorFuncion
+                    analytics.ingresoPromedioFuncion
                 )}</p>
             </div>
         `;

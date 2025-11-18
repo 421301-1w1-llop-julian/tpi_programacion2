@@ -67,4 +67,3 @@ window.deleteProduct = async function (productId) {
         }
     }
 };
-
